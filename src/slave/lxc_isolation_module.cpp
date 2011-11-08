@@ -369,6 +369,10 @@ bool LxcIsolationModule::setControlGroupValue(
   return true;
 }
 
+void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
+                                     const ExecutorID& executorId)
+{
+}
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
     const Resources& resources)
