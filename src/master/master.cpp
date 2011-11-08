@@ -421,6 +421,8 @@ void Master::initialize()
       &ExitedExecutorMessage::executor_id,
       &ExitedExecutorMessage::status);
 
+  installProtobufHandler<UsageMessage>(&Master::updateUsage);
+
   // Install some message handlers.
   installMessageHandler(EXITED, &Master::exited);
 
@@ -1851,6 +1853,15 @@ SlaveID Master::newSlaveId()
   SlaveID slaveId;
   slaveId.set_value(id + "-" + utils::stringify(nextSlaveId++));
   return slaveId;
+}
+
+
+void Master::updateUsage(const UsageMessage& message) {
+  Slave* slave = getSlave(message.slave_id());
+  if (slave && slave->active) {
+    slave->addUsageMessage(message);
+  }
+  allocator->gotUsage(message);
 }
 
 } // namespace master {

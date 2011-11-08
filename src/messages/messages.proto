@@ -215,6 +215,19 @@ message HeartbeatMessage {
 }
 
 
+message UsageMessage {
+  required SlaveID slave_id = 1;
+  required FrameworkID framework_id = 2;
+  required ExecutorID executor_id = 3;
+  repeated Resource resources = 4;
+  // Time (since the epoch) as measured on the slave.
+  required double timestamp = 5;
+  // For resources that have to be measured over some period of time (e.g. CPU
+  // rate), the duration over which this usage measurement occured. 'timestamp'
+  // then indicates the end of the measurement period.
+  optional double duration = 6;
+}
+
 // Tells a slave to shut down all executors of the given framework.
 message ShutdownFrameworkMessage {
   required FrameworkID framework_id = 1;

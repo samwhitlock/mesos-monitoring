@@ -1419,5 +1419,13 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
   return dir;
 }
 
+void Slave::queueUsageUpdates() {
+  foreachkey (const FrameworkID& frameworkId, frameworks) {
+    Framework* framework = frameworks[frameworkId];
+    foreachkey (const ExecutorID& executorId, framework->executors) {
+      isolationModule->sampleUsage(frameworkId, executorId);
+    }
+  }
+}
 
 }}} // namespace mesos { namespace internal { namespace slave {

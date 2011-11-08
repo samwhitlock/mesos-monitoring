@@ -110,6 +110,8 @@ public:
                                 double reregisteredTime);
   void exited();
 
+  void updateUsage(const UsageMessage& update);
+
   // Return connected frameworks that are not in the process of being removed
   std::vector<Framework*> getActiveFrameworks() const;
 
@@ -318,12 +320,31 @@ struct Slave
     if (hasExecutor(frameworkId, executorId)) {
       // Update the resources in use to reflect removing this executor.
       resourcesInUse -= executors[frameworkId][executorId].resources();
+      clearObservedUsageFor(frameworkId, executorId);
 
-      executors[frameworkId].erase(executorId);
       if (executors[frameworkId].size() == 0) {
-        executors.erase(frameworkId);
+	executors.erase(frameworkId);
+        usageMessages.erase(frameworkId);
       }
     }
+  }
+
+  void clearObservedUsageFor(const FrameworkID& frameworkId,
+                     const ExecutorID& executorId)
+  {
+    if (usageMessages.count(frameworkId) > 0 &&
+        usageMessages[frameworkId].count(executorId) > 0) {
+      resourcesObservedUsed -=
+          usageMessages[frameworkId][executorId].resources();
+      usageMessages[frameworkId].erase(executorId);
+    }
+  }
+
+  void addUsageMessage(const UsageMessage& usage)
+  {
+    clearObservedUsageFor(usage.framework_id(), usage.executor_id());
+    resourcesObservedUsed += usage.resources();
+    usageMessages[usage.framework_id()][usage.executor_id()] = usage;
   }
 
   Resources resourcesFree()
@@ -342,9 +363,13 @@ struct Slave
 
   Resources resourcesOffered; // Resources currently in offers.
   Resources resourcesInUse;   // Resources currently used by tasks.
+  Resources resourcesObservedUsed; // Used resources based on last usage
+                                   // message.
 
   // Executors running on this slave.
   hashmap<FrameworkID, hashmap<ExecutorID, ExecutorInfo> > executors;
+  // Map of most recent UsageMessages applying to each live executor.
+  hashmap<FrameworkID, hashmap<ExecutorID, UsageMessage> > usageMessages;
 
   // Tasks running on this slave, indexed by FrameworkID x TaskID.
   hashmap<std::pair<FrameworkID, TaskID>, Task*> tasks;

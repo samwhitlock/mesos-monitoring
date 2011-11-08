@@ -65,6 +65,11 @@ public:
   virtual void resourcesChanged(const FrameworkID& frameworkId,
                                 const ExecutorID& executorId,
                                 const Resources& resources) = 0;
+
+  // Sample the resource usage for a given executor. Should asynchronously
+  // callback the slave.
+  virtual void sampleUsage(const FrameworkID& frameworkId,
+                           const ExecutorID& executorId) {}
 };
 
 }}} // namespace mesos { namespace internal { namespace slave {

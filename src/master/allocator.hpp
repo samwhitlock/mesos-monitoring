@@ -73,6 +73,8 @@ public:
   virtual void offersRevived(Framework* framework) {}
 
   virtual void timerTick() {}
+
+  virtual void gotUsage(const UsageMessage& usage) {}
 };
 
 } // namespace master {
