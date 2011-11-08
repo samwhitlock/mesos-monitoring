@@ -372,6 +372,10 @@ bool LxcIsolationModule::setControlGroupValue(
 void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
                                      const ExecutorID& executorId)
 {
+  /*
+   * lxc command for finding the info:
+   *  lxc-cgroup -n $NAME memory.memsw.usage_in_bytes
+   */
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
