@@ -369,6 +369,34 @@ bool LxcIsolationModule::setControlGroupValue(
   return true;
 }
 
+bool getControlGroupValue(const std::string& container,
+                          const std::string& property,
+                          std::iostream* ios)
+{
+  // TODO because this is used for reading stats of the cgroup,
+  // it would be best to eliminate this call to cgroup and find 
+  // the container ourselves and just read the files. This 
+  // would avoid an expensive shell call
+
+  Try<int> status =
+    utils::os::shell(ios, "lxc-cgroup -n %s %s",
+                     container.c_str(), property.c_str());
+
+  if (status.isError()) {
+    LOG(ERROR) << "Failed to get " << property
+               << " for container " << container
+               << ": " << status.error();
+    return false;
+  } else if (status.get() != 0) {
+    LOG(ERROR) << "Failed to get " << property
+               << " for container " << container
+               << ": lxc-cgroup returned " << status.get();
+    return false;
+  }
+
+  return true;
+}
+
 void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
                                      const ExecutorID& executorId)
 {
