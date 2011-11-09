@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <sstream>
 #include <map>
+#include <ctime>
 
 #include <process/dispatch.hpp>
 
@@ -400,10 +401,33 @@ bool getControlGroupValue(const std::string& container,
 void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
                                      const ExecutorID& executorId)
 {
-  /*
-   * lxc command for finding the info:
-   *  lxc-cgroup -n $NAME memory.memsw.usage_in_bytes
-   */
+  std::stringstream ss (std::stringstream::in | std::stringstream::out);
+
+  ContainerInfo* info = infos[frameworkId][executorId];
+  const string& container = info->container;
+  
+  if (getControlGroupValue(container, "memory.memsw.usage_in_bytes", &ss)) {
+    unsigned int usage;
+    ss >> usage;
+  }
+
+  ss.str("");
+  
+  //get the cpu usage as delta ticks
+  if (getControlGroupValue(container, "cpuacct.usage", &ss)) {
+    clock_t start_time = clock();
+    unsigned int start_usage;
+    ss >> start_usage;
+    ss.str("");
+    if (getControlGroupValue(container, "cpuacct.usage", &ss)) {
+      clock_t end_time = clock();
+      unsigned int end_usage;
+      ss >> end_usage;
+      
+      double time_elapsed = end_time - start_time;
+      unsigned int ticks_elapsed = end_usage - start_usage;
+    }
+  }
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
