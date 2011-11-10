@@ -1,7 +1,4 @@
 #include <iostream>
-#include <climits>
-#include <cstdio>
-#include <unistd.h>
 
 using std::cout;
 using std::cin;
