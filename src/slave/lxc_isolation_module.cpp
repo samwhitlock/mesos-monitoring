@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <sstream>
 #include <map>
-#include <ctime>
 
 #include <process/dispatch.hpp>
 
@@ -370,64 +369,9 @@ bool LxcIsolationModule::setControlGroupValue(
   return true;
 }
 
-bool getControlGroupValue(const std::string& container,
-                          const std::string& property,
-                          std::iostream* ios)
-{
-  // TODO because this is used for reading stats of the cgroup,
-  // it would be best to eliminate this call to cgroup and find 
-  // the container ourselves and just read the files. This 
-  // would avoid an expensive shell call
-
-  Try<int> status =
-    utils::os::shell(ios, "lxc-cgroup -n %s %s",
-                     container.c_str(), property.c_str());
-
-  if (status.isError()) {
-    LOG(ERROR) << "Failed to get " << property
-               << " for container " << container
-               << ": " << status.error();
-    return false;
-  } else if (status.get() != 0) {
-    LOG(ERROR) << "Failed to get " << property
-               << " for container " << container
-               << ": lxc-cgroup returned " << status.get();
-    return false;
-  }
-
-  return true;
-}
-
 void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
                                      const ExecutorID& executorId)
 {
-  std::stringstream ss (std::stringstream::in | std::stringstream::out);
-
-  ContainerInfo* info = infos[frameworkId][executorId];
-  const string& container = info->container;
-  
-  if (getControlGroupValue(container, "memory.memsw.usage_in_bytes", &ss)) {
-    unsigned int usage;
-    ss >> usage;
-  }
-
-  ss.str("");
-  
-  //get the cpu usage as delta ticks
-  if (getControlGroupValue(container, "cpuacct.usage", &ss)) {
-    clock_t start_time = clock();
-    unsigned int start_usage;
-    ss >> start_usage;
-    ss.str("");
-    if (getControlGroupValue(container, "cpuacct.usage", &ss)) {
-      clock_t end_time = clock();
-      unsigned int end_usage;
-      ss >> end_usage;
-      
-      double time_elapsed = end_time - start_time;
-      unsigned int ticks_elapsed = end_usage - start_usage;
-    }
-  }
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
