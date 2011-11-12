@@ -72,11 +72,6 @@ private:
                             const std::string& property,
                             int64_t value);
 
-  // Get a control group value of a container.
-  bool getControlGroupValue(const std::string& container,
-                            const std::string& property,
-                            std::iostream* ios);
-
   std::vector<std::string> getControlGroupOptions(const Resources& resources);
 
   // Per-framework information object maintained in info hashmap.
