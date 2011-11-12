@@ -25,11 +25,22 @@ namespace mesos { namespace internal {
     : public ResourceMonitor
   {
     public:
-      LxcResourceMonitor(const std::string& cgroupName);
+      LxcResourceMonitor(const std::string& _containerName);
 
       virtual ~LxcResourceMonitor();
 
       virtual UsageReport collectUsage();
+    private:
+      std::string containerName;
+
+      long previousTimestamp = -1;
+      long previousCpuTicks = 0;
+
+      bool getControlGroupValue(std::iostream* ios, const string& property);
+
+      // gets the approximate start time for the container
+      // used initial call of collectUsage when no previous data is available
+      long getContainerStartTime();
   };
 
 }} // namespace mesos { namespace internal {
