@@ -42,7 +42,7 @@ class ResourceMonitor
 {
 public:
 
-  virtual ~ResourceMonitor();
+  virtual ~ResourceMonitor() {}
 
   // Collects resource usage statistics and returns a UsageReport describing
   // them. For applicable resource, each call reports usage over the time period
