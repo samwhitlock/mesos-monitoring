@@ -30,10 +30,10 @@ struct UsageReport {
   Resources resources;
 
   // The timestamp of the end of the measurement period (ms since epoch).
-  long timestamp;
+  double timestamp;
 
   // The duration of time the resources are measured over (ms).
-  long duration;
+  double duration;
 };
 
 // An abstract module for collecting resource usage reports for current
