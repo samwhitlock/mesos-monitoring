@@ -24,68 +24,70 @@
 
 namespace mesos { namespace internal {
 
+LxcResourceMonitor::LxcResourceMonitor(const std::string& _containerName)
+  : containerName(_containerName)
+{
+}
 
-  LxcResourceMonitor::LxcResourceMonitor(const std::string& _containerName)
-    : containerName(_containerName)
-  {
+LxcResourceMonitor::~LxcResourceMonitor()
+{
+}
+
+UsageReport LxcResourceMonitor::collectUsage()
+{
+  //collect memory usage
+  std::stringstream ss;
+  getControlGroupValue(&ss, "memory.memsw.usage_in_bytes");
+  long memoryInBytes;
+  ss >> memoryInBytes;
+  ss.str("");//TODO is this necessary?
+
+  //collect cpu usage and do a diff
+  if (previousTimestamp == -1) {
+    previousTimestamp = getContainerStartTime();
   }
+  
+  getControlGroupValue(&ss, "cpuacct.usage");
+  timeval tv;
+  gettimeofday(tv, NULL);
+  long asMillisecs = tv.tv_sec * 1000 + (tv.tv_usec / 1000.0) + 0.5;
 
-  LxcResourceMonitor::~LxcResourceMonitor()
-  {
-  }
+  long cpuTicks;
+  ss >> cpuTicks;
+  ss.str("");//TODO is this necessary?
 
-  UsageReport LxcResourceMonitor::collectUsage()
-  {
-    //collect memory usage
-    std::stringstream ss;
-    getControlGroupValue(&ss, "memory.memsw.usage_in_bytes");
-    long memoryInBytes;
-    ss >> memoryInBytes;
-    ss.str("");//TODO is this necessary?
+  long elapsedTicks = cpuTicks - previousCpuTicks;
+  previousCpuTicks = cpuTicks;
+  
+  long elapsedTime = asMillisecs - previousTimestamp;
+  previousTimestamp = asMillisecs;
 
-    //collect cpu usage and do a diff
-    if (previousTimestamp == -1) {
-      previousTimestamp = getContainerStartTime();
-    }
+  //TODO assemble into a usage report
+}
+
+bool LxcResourceMonitor::getControlGroupValue(
+    std::iostream* ios, const string& property)
+{
+  Try<int> status =
+    utils::os::shell(ios, "lxc-cgroup -n %s %s",
+                     this->containerName.c_str(), property.c_str());
+  
+  if (status.isError() || status.get() != 0) {
+    LOG(ERROR) << "Failed to get " << property
+               << " for container " << this->containerName;
+    //TODO Sam add better log errors like those from
+    //setControlGroupValue in lxc_isolation_module
     
-    getControlGroupValue(&ss, "cpuacct.usage");
-    timeval tv;
-    gettimeofday(tv, NULL);
-    long asMillisecs = tv.tv_sec * 1000 + (tv.tv_usec / 1000.0) + 0.5;
-
-    long cpuTicks;
-    ss >> cpuTicks;
-    ss.str("");//TODO is this necessary?
-
-    long elapsedTicks = cpuTicks - previousCpuTicks;
-    previousCpuTicks = cpuTicks;
-    
-    long elapsedTime = asMillisecs - previousTimestamp;
-    previousTimestamp = asMillisecs;
+    return false;
   }
 
-  bool LxcResourceMonitor::getControlGroupValue(
-      std::iostream* ios, const string& property)
-  {
-    Try<int> status =
-      utils::os::shell(ios, "lxc-cgroup -n %s %s",
-                       this->containerName.c_str(), property.c_str());
-    
-    if (status.isError() || status.get() != 0) {
-      LOG(ERROR) << "Failed to get " << property
-                 << " for container " << this->containerName;
-      //TODO Sam add better log errors like those from
-      //setControlGroupValue in lxc_isolation_module
-      
-      return false;
-    }
+  return true;
+}
 
-    return true;
-  }
-
-  long LxcResourceMonitor::getContainerStartTime()
-  {
-    //TODO Sam get the min over the proc directories
-  }
+long LxcResourceMonitor::getContainerStartTime()
+{
+  //TODO Sam get the min over the proc directories
+}
 
 }} // namespace mesos { namespace internal {
+
