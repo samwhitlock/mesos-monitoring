@@ -20,28 +20,28 @@
 #define __LXC_RESOURCE_MONITOR_HPP__
 
 namespace mesos { namespace internal {
-  
-  class LxcResourceMonitor
-    : public ResourceMonitor
-  {
-    public:
-      LxcResourceMonitor(const std::string& _containerName);
 
-      virtual ~LxcResourceMonitor();
+class LxcResourceMonitor
+  : public ResourceMonitor
+{
+  public:
+    LxcResourceMonitor(const std::string& _containerName);
 
-      virtual UsageReport collectUsage();
-    private:
-      std::string containerName;
+    virtual ~LxcResourceMonitor();
 
-      long previousTimestamp = -1;
-      long previousCpuTicks = 0;
+    virtual UsageReport collectUsage();
+  private:
+    std::string containerName;
 
-      bool getControlGroupValue(std::iostream* ios, const string& property);
+    long previousTimestamp = -1;
+    long previousCpuTicks = 0;
 
-      // gets the approximate start time for the container
-      // used initial call of collectUsage when no previous data is available
-      long getContainerStartTime();
-  };
+    bool getControlGroupValue(std::iostream* ios, const string& property);
+
+    // gets the approximate start time for the container
+    // used initial call of collectUsage when no previous data is available
+    long getContainerStartTime();
+};
 
 }} // namespace mesos { namespace internal {
 
