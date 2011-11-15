@@ -27,6 +27,7 @@
 #include "slave.hpp"
 
 #include "common/hashmap.hpp"
+#include "monitoring/resource_monitor.hpp"
 
 
 namespace mesos { namespace internal { namespace slave {
@@ -77,10 +78,16 @@ private:
   // Per-framework information object maintained in info hashmap.
   struct ContainerInfo
   {
+    ~ContainerInfo()
+    {
+      if (resourceMonitor != NULL)
+        delete resourceMonitor;
+    }
     FrameworkID frameworkId;
     ExecutorID executorId;
     std::string container; // Name of Linux container used for this framework.
     pid_t pid; // PID of lxc-execute command running the executor.
+    ResourceMonitor* resourceMonitor;
   };
 
   // TODO(benh): Make variables const by passing them via constructor.
