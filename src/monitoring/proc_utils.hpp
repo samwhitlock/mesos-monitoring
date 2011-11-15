@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+#ifndef __PROC_UTILS_HPP__
+#define __PROC_UTILS_HPP__
+
 #include <string>
 #include <vector>
 
@@ -48,3 +51,5 @@ double getStartTime(const std::string& pid);
 std::vector<std::string> getAllPids();
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
+
+#endif // __PROC_UTILS_HPP__
