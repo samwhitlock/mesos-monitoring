@@ -50,4 +50,9 @@ void IsolationModule::destroy(IsolationModule* module)
   }
 }
 
+void IsolationModule::sampleUsage(const FrameworkID& frameworkId,
+                                  const ExecutorID& executorId)
+{
+}
+
 }}} // namespace mesos { namespace internal { namespace slave {
