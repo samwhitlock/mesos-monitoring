@@ -26,6 +26,13 @@ namespace mesos { namespace internal {
 // A single measurement of resources. Some resources may be measured relative
 // to a previous measurement, and are therefore associated with a duration.
 struct UsageReport {
+  UsageReport(Resources _resources,
+              const long _timestamp,
+              const long _duration)
+          : resources(_resources),
+            timestamp(_timestamp),
+            duration(_duration) {}
+
   // The collection of resources measured.
   Resources resources;
 
@@ -54,3 +61,4 @@ public:
 }} // namespace mesos { namespace internal {
 
 #endif // __RESOURCE_MONITOR_HPP__
+

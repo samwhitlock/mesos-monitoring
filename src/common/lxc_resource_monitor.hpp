@@ -33,14 +33,14 @@ class LxcResourceMonitor
   private:
     std::string containerName;
 
-    long previousTimestamp = -1;
-    long previousCpuTicks = 0;
+    double previousTimestamp = -1;
+    double previousCpuTicks = 0;
 
     bool getControlGroupValue(std::iostream* ios, const string& property);
 
     // gets the approximate start time for the container
     // used initial call of collectUsage when no previous data is available
-    long getContainerStartTime();
+    double getContainerStartTime();
 };
 
 }} // namespace mesos { namespace internal {

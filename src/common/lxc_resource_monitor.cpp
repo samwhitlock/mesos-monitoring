@@ -21,8 +21,15 @@
 #include "lxc_resource_monitor.hpp"
 
 #include "utils.hpp"
+#include "resources.hpp"
+//TODO include mesos.pb.h
 
 namespace mesos { namespace internal {
+
+inline double toMillisecs(timeval tv)
+{
+  return tv.tv_sec * 1000.0 + (tv.tv_usec / 1000.0) + 0.5;
+}
 
 LxcResourceMonitor::LxcResourceMonitor(const std::string& _containerName)
   : containerName(_containerName)
@@ -38,7 +45,7 @@ UsageReport LxcResourceMonitor::collectUsage()
   //collect memory usage
   std::stringstream ss;
   getControlGroupValue(&ss, "memory.memsw.usage_in_bytes");
-  long memoryInBytes;
+  double memoryInBytes;
   ss >> memoryInBytes;
   ss.str("");//TODO is this necessary?
 
@@ -48,21 +55,29 @@ UsageReport LxcResourceMonitor::collectUsage()
   }
   
   getControlGroupValue(&ss, "cpuacct.usage");
-  timeval tv;
+  timeval tv;// Also serves as the timestamp
   gettimeofday(tv, NULL);
-  long asMillisecs = tv.tv_sec * 1000 + (tv.tv_usec / 1000.0) + 0.5;
+  double asMillisecs = toMillisecs(tv);
 
-  long cpuTicks;
+  double cpuTicks;
   ss >> cpuTicks;
   ss.str("");//TODO is this necessary?
 
-  long elapsedTicks = cpuTicks - previousCpuTicks;
+  double elapsedTicks = cpuTicks - previousCpuTicks;
   previousCpuTicks = cpuTicks;
   
-  long elapsedTime = asMillisecs - previousTimestamp;
+  double elapsedTime = asMillisecs - previousTimestamp;
   previousTimestamp = asMillisecs;
 
-  //TODO assemble into a usage report
+  Resource_Scalar ticks, memory;
+  ticks.set_value(elapsedTicks);
+  memory.set_value(memoryInBytes);
+
+  Resources resources;
+  resources += ticks;
+  resources += memory;
+
+  return UsageMessage(resources, asMillisecs, elapsedTime);
 }
 
 bool LxcResourceMonitor::getControlGroupValue(
@@ -84,9 +99,8 @@ bool LxcResourceMonitor::getControlGroupValue(
   return true;
 }
 
-long LxcResourceMonitor::getContainerStartTime()
+double LxcResourceMonitor::getContainerStartTime()
 {
-  //TODO Sam get the min over the proc directories
 }
 
 }} // namespace mesos { namespace internal {
