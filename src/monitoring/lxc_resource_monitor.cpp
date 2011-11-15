@@ -46,7 +46,6 @@ UsageReport LxcResourceMonitor::collectUsage()
   getControlGroupValue(&ss, "memory.memsw.usage_in_bytes");
   double memoryInBytes;
   ss >> memoryInBytes;
-  ss.str("");//TODO is this necessary?
 
   //collect cpu usage and do a diff
   if (previousTimestamp == -1) {
@@ -54,13 +53,12 @@ UsageReport LxcResourceMonitor::collectUsage()
   }
   
   getControlGroupValue(&ss, "cpuacct.usage");
-  timeval tv;// Also serves as the timestamp
+  timeval tv;
   gettimeofday(tv, NULL);
   double asMillisecs = toMillisecs(tv);
 
   double cpuTicks;
   ss >> cpuTicks;
-  ss.str("");//TODO is this necessary?
 
   double elapsedTicks = cpuTicks - previousCpuTicks;
   previousCpuTicks = cpuTicks;
