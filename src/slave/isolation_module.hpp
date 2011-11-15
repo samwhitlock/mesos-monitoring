@@ -29,6 +29,8 @@
 
 #include "common/resources.hpp"
 
+#include "monitoring/resource_monitor.hpp"
+
 
 namespace mesos { namespace internal { namespace slave {
 
@@ -68,8 +70,10 @@ public:
 
   // Sample the resource usage for a given executor. Should asynchronously
   // callback the slave.
-  virtual void sampleUsage(const FrameworkID& frameworkId,
-                           const ExecutorID& executorId) {}
+  void sampleUsage(const FrameworkID& frameworkId,
+                   const ExecutorID& executorId);
+private:
+  ResourceMonitor resourceMonitor;
 };
 
 }}} // namespace mesos { namespace internal { namespace slave {
