@@ -21,7 +21,7 @@
 
 #include "common/resources.hpp"
 
-namespace mesos { namespace internal {
+namespace mesos { namespace internal { namespace monitoring {
 
 // A single measurement of resources. Some resources may be measured relative
 // to a previous measurement, and are therefore associated with a duration.
@@ -51,6 +51,6 @@ public:
   virtual UsageReport collectUsage() = 0;
 };
 
-}} // namespace mesos { namespace internal {
+}}} // namespace mesos { namespace internal { namespace monitoring {
 
 #endif // __RESOURCE_MONITOR_HPP__

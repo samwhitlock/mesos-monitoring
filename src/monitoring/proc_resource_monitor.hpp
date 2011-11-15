@@ -22,8 +22,7 @@
 #include "common/resources.hpp"
 #include "common/resource_monitor.hpp"
 
-namespace mesos { namespace internal {
-
+namespace mesos { namespace internal { namespace monitoring {
 
 // An implementation of the ResourceMonitor class that retrieves resource
 // usage information for a process and all its (sub)children from proc.
@@ -36,6 +35,6 @@ public:
   UsageReport collectUsage();
 };
 
-}} // namespace mesos { namespace internal {
+}}} // namespace mesos { namespace internal { namespace monitoring {
 
 #endif // __PROC_RESOURCE_MONITOR_HPP__

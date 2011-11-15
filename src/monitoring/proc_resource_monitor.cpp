@@ -19,9 +19,7 @@
 #include "common/resources.hpp"
 #include "common/resource_monitor.hpp"
 
-using namespace mesos;
-using namespace mesos::internal;
-
+namespace mesos { namespace internal { namespace monitoring {
 
 ProcResourceMonitor::~ProcResourceMonitor()
 {
@@ -33,4 +31,4 @@ UsageReport ProcResourceMonitor::collectUsage()
   // TODO(adegtiar): implement.
 }
 
-}} // namespace mesos { namespace internal {
+}}} // namespace mesos { namespace internal { namespace monitoring {
