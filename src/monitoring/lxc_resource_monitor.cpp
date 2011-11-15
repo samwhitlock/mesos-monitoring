@@ -22,6 +22,7 @@
 
 #include "common/utils.hpp"
 #include "common/resources.hpp"
+#include "mesos/mesos.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
@@ -66,15 +67,21 @@ UsageReport LxcResourceMonitor::collectUsage()
   double elapsedTime = asMillisecs - previousTimestamp;
   previousTimestamp = asMillisecs;
 
-  Resource_Scalar ticks, memory;
-  ticks.set_value(elapsedTicks);
-  memory.set_value(memoryInBytes);
+  Resource memory;
+  memory.set_type(Resource::SCALAR);
+  memory.set_name("mem_usage");
+  memory.mutable_scalar()->set_value(memoryInBytes);
+
+  Resource cpu;
+  cpu.set_type(Resource::SCALAR);
+  cpu.set_name("cpu_usage");
+  cpu.mutable_scalar()->set_value(elapsedTicks);
 
   Resources resources;
-  resources += ticks;
+  resources += cpu;
   resources += memory;
 
-  return UsageMessage(resources, asMillisecs, elapsedTime);
+  return UsageReport(resources, asMillisecs, elapsedTime);
 }
 
 bool LxcResourceMonitor::getControlGroupValue(
@@ -84,12 +91,15 @@ bool LxcResourceMonitor::getControlGroupValue(
     utils::os::shell(ios, "lxc-cgroup -n %s %s",
                      this->containerName.c_str(), property.c_str());
   
-  if (status.isError() || status.get() != 0) {
+  if (status.isError()) {
     LOG(ERROR) << "Failed to get " << property
-               << " for container " << this->containerName;
-    //TODO Sam add better log errors like those from
-    //setControlGroupValue in lxc_isolation_module
-    
+               << " for container " << container
+               << ": " << status.error();
+    return false;
+  } else if (status.get() != 0) {
+    LOG(ERROR) << "Failed to get " << property
+               << " for container " << container
+               << ": lxc-cgroup returned " << status.get();
     return false;
   }
 
