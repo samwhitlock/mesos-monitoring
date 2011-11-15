@@ -133,6 +133,11 @@ ifeq ($(OS_NAME),linux)
   SLAVE_OBJ += slave/lxc_isolation_module.o
 endif
 
+#MONITORING_OBJ = monitoring/resource_monitor.o \
+			monitoring/proc_resource_monitor.o, monitoring/proc_utils.o
+
+#SLAVE_OBJ += $(MONITORING_OBJ)
+
 PROTOBUF_OBJ = mesos.pb.o messages/messages.pb.o messages/log.pb.o
 
 MASTER_WEBUI_OBJ = master/webui.o
