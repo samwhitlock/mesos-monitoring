@@ -19,7 +19,7 @@
 #ifndef __LXC_RESOURCE_MONITOR_HPP__
 #define __LXC_RESOURCE_MONITOR_HPP__
 
-namespace mesos { namespace internal {
+namespace mesos { namespace internal { namespace monitoring {
 
 class LxcResourceMonitor
   : public ResourceMonitor
@@ -43,6 +43,7 @@ class LxcResourceMonitor
     double getContainerStartTime();
 };
 
-}} // namespace mesos { namespace internal {
+}}} // namespace mesos { namespace internal { namespace monitoring {
 
 #endif // __LXC_RESOURCE_MONITOR_HPP__
+

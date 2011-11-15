@@ -20,11 +20,10 @@
 
 #include "lxc_resource_monitor.hpp"
 
-#include "utils.hpp"
-#include "resources.hpp"
-//TODO include mesos.pb.h
+#include "common/utils.hpp"
+#include "common/resources.hpp"
 
-namespace mesos { namespace internal {
+namespace mesos { namespace internal { namespace monitoring {
 
 inline double toMillisecs(timeval tv)
 {
@@ -103,5 +102,5 @@ double LxcResourceMonitor::getContainerStartTime()
 {
 }
 
-}} // namespace mesos { namespace internal {
+}}} // namespace mesos { namespace internal { namespace monitoring {
 
