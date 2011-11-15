@@ -21,9 +21,16 @@
 #include <sstream>
 #include <string>
 #include <asm/param.h>
+#include <dirent.h>
 #include "proc_utils.hpp"
 
 using std::string;
+using std::vector;
+using std::ifstream;
+using std::stringstream;
+using std::cout;
+using std::endl;
+using std::ios_base;
 
 namespace mesos { namespace internal { namespace monitoring {
 
@@ -33,7 +40,7 @@ namespace mesos { namespace internal { namespace monitoring {
 struct ProcessStats getProcessStats(const string& pid)
 {
   struct ProcessStats pinfo = {};
-  string proc_path = "/proc/" + process_id + "/stat";
+  string proc_path = "/proc/" + pid + "/stat";
   ifstream stat_stream(proc_path.c_str(), ios_base::in);
   // Dummy vars for leading entries in stat that we don't care about.
   string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
@@ -81,7 +88,7 @@ long getBootTime()
 
 double getStartTime(const string& pid)
 {
-  struct ProcessStats root_stats = getProcessStats(root_pid);
+  struct ProcessStats root_stats = getProcessStats(pid);
   double starttime_after_boot = root_stats.starttime / HZ; // (seconds).
   return (getBootTime() + starttime_after_boot) * 1000.0;
 }
@@ -97,7 +104,7 @@ vector<string> getAllPids() {
     string filename;
     while ((proc_entry = readdir(proc_dp)) != NULL) {
       filename = string(proc_entry->d_name);
-      if (filename.find_first_not_of("0123456789") == std::string::npos) {
+      if (filename.find_first_not_of("0123456789") == string::npos) {
         pids.push_back(filename);
       }
     }
