@@ -374,6 +374,13 @@ bool LxcIsolationModule::setControlGroupValue(
 void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
                                      const ExecutorID& executorId)
 {
+  ContainerInfo* info = infos[frameworkId][executorId];
+
+  CHECK(info->container != "");
+
+  ResourceMonitor* resourceMonitor = info->resourceMonitor;
+  UsageReport usageReport = resourceMonitor->collectUsage();
+  //TODO convert to usage message and send to slave
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
