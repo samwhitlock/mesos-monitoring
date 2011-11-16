@@ -33,10 +33,10 @@ class LxcResourceMonitor
   private:
     std::string containerName;
 
-    double previousTimestamp = -1;
-    double previousCpuTicks = 0;
+    double previousTimestamp;
+    double previousCpuTicks;
 
-    bool getControlGroupValue(std::iostream* ios, const string& property);
+    bool getControlGroupValue(std::iostream* ios, const std::string& property);
 
     // gets the approximate start time for the container
     // used initial call of collectUsage when no previous data is available
