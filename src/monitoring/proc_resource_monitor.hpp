@@ -19,8 +19,11 @@
 #ifndef __PROC_RESOURCE_MONITOR_HPP__
 #define __PROC_RESOURCE_MONITOR_HPP__
 
-#include "common/resources.hpp"
-#include "monitoring/resource_monitor.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "proc_utils.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
@@ -30,10 +33,42 @@ class ProcResourceMonitor: public ResourceMonitor
 {
 public:
 
-  virtual ~ProcResourceMonitor();
+  ProcResourceMonitor(const std::string& root_pid);
+
+  ~ProcResourceMonitor();
 
   UsageReport collectUsage();
+
+private:
+
+  std::string root_pid;
+  double prev_cpu_usage;
+  double prev_timestamp;
+  bool initialized;
+
+  // Retrieve the info for all processes rooted at the process with the given
+  // PID.
+  std::vector<struct ProcessStats> getProcessTreeStats();
+
+  // Aggregates the info all of the given ProcessStats and stores the result in
+  // mem_total and cpu_total.
+  void aggregateResourceUsage(const std::vector<struct ProcessStats>& processes,
+      double& mem_total,
+      double& cpu_total);
 };
+
+  // Collects resource usage statistics and populates the arguments describing
+  // them.
+  void collectUsage(double& mem_usage,
+    double& cpu_usage,
+    double& timestamp,
+    double& duration);
+
+  // Packages the given arguments into a UsageReport.
+  UsageReport generateUsageReport(const double& mem_usage,
+      const double& cpu_usage,
+      const double& timestamp,
+      const double& duration);
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
