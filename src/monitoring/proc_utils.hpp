@@ -43,6 +43,9 @@ struct ProcessStats getProcessStats(const std::string& pid);
 // Retrieves the system boot time (in seconds since epoch).
 long getBootTime();
 
+// Retrieves the current system time in ms since epoch.
+double getCurrentTime();
+
 // Retrieves the start time (in milliseconds since epoch) of the process with
 // the given PID.
 double getStartTime(const std::string& pid);

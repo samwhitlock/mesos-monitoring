@@ -16,21 +16,24 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 #include <asm/param.h>
 #include <dirent.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <sys/time.h>
+#include <vector>
+
 #include "proc_utils.hpp"
 
-using std::string;
-using std::vector;
-using std::ifstream;
-using std::stringstream;
 using std::cout;
 using std::endl;
+using std::ifstream;
 using std::ios_base;
+using std::string;
+using std::stringstream;
+using std::vector;
 
 namespace mesos { namespace internal { namespace monitoring {
 
@@ -84,6 +87,13 @@ long getBootTime()
     cout << "Unable to open stats file" << endl;
   }
   return btime;
+}
+
+double getCurrentTime()
+{
+  struct timeval ctime;
+  gettimeofday(&ctime, NULL);
+  return ((ctime.tv_sec) * 1000 + ctime.tv_usec/1000.0);
 }
 
 double getStartTime(const string& pid)
