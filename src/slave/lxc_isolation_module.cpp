@@ -28,6 +28,7 @@
 #include "common/type_utils.hpp"
 #include "common/units.hpp"
 #include "common/utils.hpp"
+#include "monitoring/resource_monitor.hpp"
 #include "monitoring/lxc_resource_monitor.hpp"
 
 #include "launcher/launcher.hpp"
@@ -380,7 +381,18 @@ void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
 
   ResourceMonitor* resourceMonitor = info->resourceMonitor;
   UsageReport usageReport = resourceMonitor->collectUsage();
-  //TODO convert to usage message and send to slave
+
+  // Convert the report to a usage message.
+  UsageMessage usage;
+  usage.mutable_slave_id()->MergeFrom(slave->id);
+  usage.mutable_framework_id()->MergeFrom(frameworkId);
+  usage.mutable_executor_id()->MergeFrom(executorId);
+  usage.mutable_resources()->MergeFrom(usageReport.resources);
+  usage.set_timestamp(usageReport.timestamp);
+  usage.set_duration(usageReport.duration);
+
+  // Send it to the slave.
+  process::dispatch(slave, &Slave::sendUsageUpdate, usage);
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
