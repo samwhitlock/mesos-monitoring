@@ -1428,4 +1428,8 @@ void Slave::queueUsageUpdates() {
   }
 }
 
+void Slave::sendUsageUpdate(const UsageMessage& update)
+{
+}
+
 }}} // namespace mesos { namespace internal { namespace slave {
