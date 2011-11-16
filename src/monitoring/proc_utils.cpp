@@ -58,14 +58,13 @@ struct ProcessStats getProcessStats(const string& pid)
               >> cstime >> priority >> nice >> O >> itrealvalue
               >> pinfo.starttime >> vsize >> rss;
   stat_stream.close();
-  double page_size_kb = sysconf(_SC_PAGE_SIZE) / 1024.0;
-  pinfo.mem_usage = rss * page_size_kb;
+  pinfo.mem_usage = rss * sysconf(_SC_PAGE_SIZE);
   pinfo.cpu_time = utime + stime;
   return pinfo;
 }
 
 // TODO(adegtiar): make error-reporting consistent with the rest of Mesos.
-long getBootTime()
+double getBootTime()
 {
   string line;
   long btime = 0;
@@ -86,21 +85,21 @@ long getBootTime()
   } else {
     cout << "Unable to open stats file" << endl;
   }
-  return btime;
+  return btime * 1000.0;
 }
 
 double getCurrentTime()
 {
   struct timeval ctime;
   gettimeofday(&ctime, NULL);
-  return ((ctime.tv_sec) * 1000 + ctime.tv_usec/1000.0);
+  return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
 }
 
 double getStartTime(const string& pid)
 {
   struct ProcessStats root_stats = getProcessStats(pid);
-  double starttime_after_boot = root_stats.starttime / HZ; // (seconds).
-  return (getBootTime() + starttime_after_boot) * 1000.0;
+  double starttime_after_boot = root_stats.starttime * 1000.0 / HZ;
+  return getBootTime() + starttime_after_boot;
 }
 
 vector<string> getAllPids() {

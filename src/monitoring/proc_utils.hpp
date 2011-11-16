@@ -25,14 +25,13 @@
 namespace mesos { namespace internal { namespace monitoring {
 
 struct ProcessStats {
-  // TODO(adegtiar): finalize units for fields.
   std::string pid;
   std::string ppid;
   std::string pgrp;
   std::string session;
   double cpu_time;  // utime + stime in ticks.
   double starttime; // jiffies since system boot time.
-  double mem_usage; // rss in kb.
+  double mem_usage; // rss in bytes.
 };
 
 // Retrieves resource usage and metadata for a process. Takes the PID of the
@@ -40,10 +39,10 @@ struct ProcessStats {
 // info.
 struct ProcessStats getProcessStats(const std::string& pid);
 
-// Retrieves the system boot time (in seconds since epoch).
-long getBootTime();
+// Retrieves the system boot time (in milliseconds since epoch).
+double getBootTime();
 
-// Retrieves the current system time in ms since epoch.
+// Retrieves the current system time (in milliseconds since epoch).
 double getCurrentTime();
 
 // Retrieves the start time (in milliseconds since epoch) of the process with
