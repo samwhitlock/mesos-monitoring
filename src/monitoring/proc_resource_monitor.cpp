@@ -33,10 +33,7 @@ using std::vector;
 namespace mesos { namespace internal { namespace monitoring {
 
 ProcResourceMonitor::ProcResourceMonitor(const string& _root_pid)
-{
-  root_pid.assign(_root_pid);
-  initialized = false;
-}
+  : root_pid(_root_pid), initialized(false) {}
 
 ProcResourceMonitor::~ProcResourceMonitor() {}
 

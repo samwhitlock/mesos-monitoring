@@ -41,7 +41,7 @@ public:
 
 private:
 
-  std::string root_pid;
+  const std::string root_pid;
   double prev_cpu_usage;
   double prev_timestamp;
   bool initialized;
