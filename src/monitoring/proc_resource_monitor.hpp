@@ -20,7 +20,7 @@
 #define __PROC_RESOURCE_MONITOR_HPP__
 
 #include "common/resources.hpp"
-#include "common/resource_monitor.hpp"
+#include "monitoring/resource_monitor.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
