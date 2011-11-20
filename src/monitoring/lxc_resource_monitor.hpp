@@ -19,10 +19,14 @@
 #ifndef __LXC_RESOURCE_MONITOR_HPP__
 #define __LXC_RESOURCE_MONITOR_HPP__
 
+#include <string>
+#include <iostream>
+
+#include "monitoring/resource_monitor.hpp"
+
 namespace mesos { namespace internal { namespace monitoring {
 
-class LxcResourceMonitor
-  : public ResourceMonitor
+class LxcResourceMonitor : public ResourceMonitor
 {
   public:
     LxcResourceMonitor(const std::string& _containerName);

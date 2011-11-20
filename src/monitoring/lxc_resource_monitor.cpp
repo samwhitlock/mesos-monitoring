@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#include <ctime>
+#include <sys/time.h>
 
 #include "lxc_resource_monitor.hpp"
 
@@ -55,7 +55,7 @@ UsageReport LxcResourceMonitor::collectUsage()
   
   getControlGroupValue(&ss, "cpuacct.usage");
   timeval tv;
-  gettimeofday(tv, NULL);
+  gettimeofday(&tv, NULL);
   double asMillisecs = toMillisecs(tv);
 
   double cpuTicks;
@@ -85,20 +85,20 @@ UsageReport LxcResourceMonitor::collectUsage()
 }
 
 bool LxcResourceMonitor::getControlGroupValue(
-    std::iostream* ios, const string& property)
+    std::iostream* ios, const std::string& property)
 {
   Try<int> status =
     utils::os::shell(ios, "lxc-cgroup -n %s %s",
-                     this->containerName.c_str(), property.c_str());
+                     containerName.c_str(), property.c_str());
   
   if (status.isError()) {
     LOG(ERROR) << "Failed to get " << property
-               << " for container " << container
+               << " for container " << containerName
                << ": " << status.error();
     return false;
   } else if (status.get() != 0) {
     LOG(ERROR) << "Failed to get " << property
-               << " for container " << container
+               << " for container " << containerName
                << ": lxc-cgroup returned " << status.get();
     return false;
   }
