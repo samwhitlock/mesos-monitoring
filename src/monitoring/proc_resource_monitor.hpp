@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "monitoring/resource_monitor.hpp"
 #include "proc_utils.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
@@ -37,7 +38,7 @@ public:
 
   ~ProcResourceMonitor();
 
-  UsageReport collectUsage();
+  virtual UsageReport collectUsage();
 
 private:
 
@@ -55,7 +56,6 @@ private:
   void aggregateResourceUsage(const std::vector<struct ProcessStats>& processes,
       double& mem_total,
       double& cpu_total);
-};
 
   // Collects resource usage statistics and populates the arguments describing
   // them.
@@ -69,6 +69,8 @@ private:
       const double& cpu_usage,
       const double& timestamp,
       const double& duration);
+
+};
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
