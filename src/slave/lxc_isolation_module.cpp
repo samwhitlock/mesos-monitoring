@@ -385,7 +385,6 @@ void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
 
   // Convert the report to a usage message.
   UsageMessage usage;
-  usage.mutable_slave_id()->MergeFrom(slave->id);
   usage.mutable_framework_id()->MergeFrom(frameworkId);
   usage.mutable_executor_id()->MergeFrom(executorId);
   usage.mutable_resources()->MergeFrom(usageReport.resources);
@@ -393,7 +392,7 @@ void LxcIsolationModule::sampleUsage(const FrameworkID& frameworkId,
   usage.set_duration(usageReport.duration);
 
   // Send it to the slave.
-  process::dispatch(slave, &Slave::sendUsageUpdate, usage);
+  dispatch(slave, &Slave::sendUsageUpdate, usage);
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(
