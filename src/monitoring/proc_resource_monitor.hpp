@@ -36,7 +36,7 @@ public:
 
   ProcResourceMonitor(const std::string& root_pid);
 
-  ~ProcResourceMonitor();
+  virtual ~ProcResourceMonitor();
 
   virtual UsageReport collectUsage();
 
