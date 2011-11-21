@@ -60,7 +60,6 @@ ProcessStats getProcessStats(const string& pid)
   return pinfo;
 }
 
-// TODO(adegtiar): make error-reporting consistent with the rest of Mesos.
 double getBootTime()
 {
   string line;
