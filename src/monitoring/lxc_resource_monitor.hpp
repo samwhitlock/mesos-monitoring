@@ -29,7 +29,7 @@ namespace mesos { namespace internal { namespace monitoring {
 class LxcResourceMonitor : public ResourceMonitor
 {
   public:
-    LxcResourceMonitor(const std::string& _containerName);
+    LxcResourceMonitor(const std::string& containerName);
 
     virtual ~LxcResourceMonitor();
 

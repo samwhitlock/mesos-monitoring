@@ -29,19 +29,10 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
-inline double toMillisecs(timeval tv)
-{
-  return tv.tv_sec * 1000.0 + (tv.tv_usec / 1000.0) + 0.5;
-}
-
 LxcResourceMonitor::LxcResourceMonitor(const std::string& _containerName)
-  : previousTimestamp(-1.0), previousCpuTicks(0.0), containerName(_containerName)
-{
-}
+  : previousTimestamp(-1.0), previousCpuTicks(0.0), containerName(_containerName) {}
 
-LxcResourceMonitor::~LxcResourceMonitor()
-{
-}
+LxcResourceMonitor::~LxcResourceMonitor() {}
 
 UsageReport LxcResourceMonitor::collectUsage()
 {
