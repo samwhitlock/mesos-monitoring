@@ -37,7 +37,7 @@ struct ProcessStats {
 // Retrieves resource usage and metadata for a process. Takes the PID of the
 // process to query and returns a ProcessStats struct containing the retrieved
 // info.
-struct ProcessStats getProcessStats(const std::string& pid);
+ProcessStats getProcessStats(const std::string& pid);
 
 // Retrieves the system boot time (in milliseconds since epoch).
 double getBootTime();

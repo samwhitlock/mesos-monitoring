@@ -50,7 +50,7 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
     initialized = true;
   }
   // Read the process stats.
-  vector<struct ProcessStats> process_tree = getProcessTreeStats();
+  vector<ProcessStats> process_tree = getProcessTreeStats();
   timestamp = getCurrentTime();
   // Sum up the resource usage stats.
   aggregateResourceUsage(process_tree, mem_usage, measured_cpu_usage_total);
@@ -65,10 +65,10 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
-vector<struct ProcessStats> ProcResourceMonitor::getProcessTreeStats()
+vector<ProcessStats> ProcResourceMonitor::getProcessTreeStats()
 {
-  vector<struct ProcessStats> process_tree;
-  struct ProcessStats root_process = getProcessStats(root_pid);
+  vector<ProcessStats> process_tree;
+  ProcessStats root_process = getProcessStats(root_pid);
   vector<string> all_pids = getAllPids();
   // Attempt to add all process in the same tree by checking for:
   //   1) Direct child via match on ppid.
@@ -76,7 +76,7 @@ vector<struct ProcessStats> ProcResourceMonitor::getProcessTreeStats()
   //   3) Same session as root.
   cout << "PIDS:";
   for(int pid_index=0; pid_index < all_pids.size(); pid_index++) {
-    struct ProcessStats next_process = getProcessStats(all_pids[pid_index]);
+    ProcessStats next_process = getProcessStats(all_pids[pid_index]);
     if (next_process.ppid == root_process.ppid ||
         next_process.pgrp == root_process.pgrp ||
         next_process.session == root_process.session) {
@@ -88,14 +88,14 @@ vector<struct ProcessStats> ProcResourceMonitor::getProcessTreeStats()
 }
 
 void ProcResourceMonitor::aggregateResourceUsage(
-    const vector<struct ProcessStats>& processes,
+    const vector<ProcessStats>& processes,
     double& mem_total,
     double& cpu_total)
 {
   mem_total = 0;
   cpu_total = 0;
   for(int process_index=0; process_index < processes.size(); process_index++) {
-    struct ProcessStats pinfo = processes[process_index];
+    ProcessStats pinfo = processes[process_index];
     mem_total += pinfo.mem_usage;
     cpu_total += pinfo.cpu_time;
   }

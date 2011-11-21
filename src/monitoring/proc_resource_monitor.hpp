@@ -49,11 +49,11 @@ private:
 
   // Retrieve the info for all processes rooted at the process with the given
   // PID.
-  std::vector<struct ProcessStats> getProcessTreeStats();
+  std::vector<ProcessStats> getProcessTreeStats();
 
   // Aggregates the info all of the given ProcessStats and stores the result in
   // mem_total and cpu_total.
-  void aggregateResourceUsage(const std::vector<struct ProcessStats>& processes,
+  void aggregateResourceUsage(const std::vector<ProcessStats>& processes,
       double& mem_total,
       double& cpu_total);
 

@@ -40,9 +40,9 @@ namespace mesos { namespace internal { namespace monitoring {
 // TODO(adegtiar): make the procfs mount point configurable (currently assuming
 // '/proc').
 
-struct ProcessStats getProcessStats(const string& pid)
+ProcessStats getProcessStats(const string& pid)
 {
-  struct ProcessStats pinfo = {};
+  ProcessStats pinfo = {};
   string proc_path = "/proc/" + pid + "/stat";
   ifstream stat_stream(proc_path.c_str(), ios_base::in);
   // Dummy vars for leading entries in stat that we don't care about.
@@ -90,14 +90,14 @@ double getBootTime()
 
 double getCurrentTime()
 {
-  struct timeval ctime;
+  timeval ctime;
   gettimeofday(&ctime, NULL);
   return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
 }
 
 double getStartTime(const string& pid)
 {
-  struct ProcessStats root_stats = getProcessStats(pid);
+  ProcessStats root_stats = getProcessStats(pid);
   double starttime_after_boot = root_stats.starttime * 1000.0 / HZ;
   return getBootTime() + starttime_after_boot;
 }
@@ -106,7 +106,7 @@ vector<string> getAllPids() {
   vector<string> pids = vector<string>();
   string proc_dirname = "/proc";
   DIR *proc_dp;
-  struct dirent *proc_entry;
+  dirent *proc_entry;
   if((proc_dp  = opendir(proc_dirname.c_str())) == NULL) {
     cout << "Error opening " << proc_dirname << endl;
   } else {
