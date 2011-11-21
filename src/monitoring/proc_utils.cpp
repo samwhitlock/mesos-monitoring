@@ -24,12 +24,11 @@
 #include <sys/time.h>
 #include <vector>
 
-#include "proc_utils.hpp"
 #include "common/foreach.hpp"
 #include "common/utils.hpp"
 
-using std::cout;
-using std::endl;
+#include "proc_utils.hpp"
+
 using std::ifstream;
 using std::ios_base;
 using std::string;
@@ -77,11 +76,11 @@ double getBootTime()
       }
     }
     if (btime == 0) {
-      cout << "Unable to read boot time from proc" << endl;
+      LOG(ERROR) << "Unable to read boot time from proc";
     }
     stats_file.close();
   } else {
-    cout << "Unable to open stats file" << endl;
+    LOG(ERROR) << "Unable to open stats file";
   }
   return btime * 1000.0;
 }

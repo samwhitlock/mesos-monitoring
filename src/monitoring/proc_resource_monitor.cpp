@@ -21,11 +21,11 @@
 #include <vector>
 
 #include "common/resources.hpp"
+#include "common/foreach.hpp"
+
 #include "monitoring/proc_resource_monitor.hpp"
 #include "proc_utils.hpp"
 
-using std::cout;
-using std::endl;
 using std::ios_base;
 using std::string;
 using std::vector;
@@ -55,8 +55,6 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
   // Sum up the resource usage stats.
   aggregateResourceUsage(process_tree, mem_usage, measured_cpu_usage_total);
   measured_cpu_usage_total *= 1000.0 / sysconf(_SC_CLK_TCK);
-  cout << "Current timestamp: " << timestamp << endl;
-  cout << "Previous timestamp: " << prev_timestamp << endl;
   duration = timestamp - prev_timestamp;
   cpu_usage = measured_cpu_usage_total - prev_cpu_usage;
   // Update the previous usage stats.
@@ -74,16 +72,14 @@ vector<ProcessStats> ProcResourceMonitor::getProcessTreeStats()
   //   1) Direct child via match on ppid.
   //   2) Same process group as root.
   //   3) Same session as root.
-  cout << "PIDS:";
-  for(int pid_index=0; pid_index < all_pids.size(); pid_index++) {
-    ProcessStats next_process = getProcessStats(all_pids[pid_index]);
+  foreach (const string& pid, all_pids) {
+    ProcessStats next_process = getProcessStats(pid);
     if (next_process.ppid == root_process.ppid ||
         next_process.pgrp == root_process.pgrp ||
         next_process.session == root_process.session) {
       process_tree.push_back(next_process);
     }
   }
-  cout << endl;
   return process_tree;
 }
 
@@ -94,8 +90,7 @@ void ProcResourceMonitor::aggregateResourceUsage(
 {
   mem_total = 0;
   cpu_total = 0;
-  for(int process_index=0; process_index < processes.size(); process_index++) {
-    ProcessStats pinfo = processes[process_index];
+  foreach (const ProcessStats& pinfo, processes) {
     mem_total += pinfo.mem_usage;
     cpu_total += pinfo.cpu_time;
   }
@@ -131,4 +126,3 @@ UsageReport ProcResourceMonitor::generateUsageReport(const double& mem_usage,
 }
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
-
