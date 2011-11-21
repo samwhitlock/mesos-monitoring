@@ -30,6 +30,7 @@
 #include "common/hashmap.hpp"
 
 #include "launcher/launcher.hpp"
+#include "monitoring/resource_monitor.hpp"
 
 
 namespace mesos { namespace internal { namespace slave {
@@ -61,6 +62,9 @@ public:
 
   virtual void processExited(pid_t pid, int status);
 
+  virtual void sampleUsage(const FrameworkID& frameworkId,
+                           const ExecutorID& executorId);
+
 protected:
   // Main method executed after a fork() to create a Launcher for launching
   // an executor's process. The Launcher will chdir() to the child's working
@@ -82,10 +86,16 @@ private:
 
   struct ProcessInfo
   {
+    ~ProcessInfo()
+    {
+      if (resourceMonitor != NULL)
+        delete resourceMonitor;
+    }
     FrameworkID frameworkId;
     ExecutorID executorId;
     pid_t pid; // PID of the forked executor process.
     std::string directory; // Working directory of the executor.
+    mesos::internal::monitoring::ResourceMonitor* resourceMonitor;
   };
 
   // TODO(benh): Make variables const by passing them via constructor.

@@ -28,10 +28,13 @@
 #include "common/type_utils.hpp"
 #include "common/utils.hpp"
 #include "common/process_utils.hpp"
+#include "monitoring/resource_monitor.hpp"
+#include "monitoring/proc_resource_monitor.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
 using namespace mesos::internal::slave;
+using namespace mesos::internal::monitoring;
 
 using namespace process;
 
@@ -115,6 +118,9 @@ void ProcessBasedIsolationModule::launchExecutor(
 
     // Record the pid (should also be the pgis since we setsid below).
     infos[frameworkId][executorId]->pid = pid;
+
+    // Start up the resource monitor.
+    info->resourceMonitor = new ProcResourceMonitor(utils::stringify(pid));
 
     // Tell the slave this executor has started.
     dispatch(slave, &Slave::executorStarted,
@@ -226,4 +232,27 @@ void ProcessBasedIsolationModule::processExited(pid_t pid, int status)
       }
     }
   }
+}
+
+
+void ProcessBasedIsolationModule::sampleUsage(const FrameworkID& frameworkId,
+                                     const ExecutorID& executorId)
+{
+  ProcessInfo* info = infos[frameworkId][executorId];
+
+  CHECK(info->pid != -1);
+
+  ResourceMonitor* resourceMonitor = info->resourceMonitor;
+  UsageReport usageReport = resourceMonitor->collectUsage();
+
+  // Convert the report to a usage message.
+  UsageMessage usage;
+  usage.mutable_framework_id()->MergeFrom(frameworkId);
+  usage.mutable_executor_id()->MergeFrom(executorId);
+  usage.mutable_resources()->MergeFrom(usageReport.resources);
+  usage.set_timestamp(usageReport.timestamp);
+  usage.set_duration(usageReport.duration);
+
+  // Send it to the slave.
+  dispatch(slave, &Slave::sendUsageUpdate, usage);
 }
