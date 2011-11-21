@@ -1428,9 +1428,9 @@ void Slave::queueUsageUpdates() {
   }
 }
 
-void Slave::sendUsageUpdate(const UsageMessage& update)
+void Slave::sendUsageUpdate(UsageMessage& update)
 {
-  usage.mutable_slave_id()->MergeFrom(id);
+  update.mutable_slave_id()->MergeFrom(id);
   send(master, update);
 }
 

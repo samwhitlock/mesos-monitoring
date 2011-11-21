@@ -91,7 +91,7 @@ public:
                        const ExecutorID& executorId,
                        const std::string& data);
   void queueUsageUpdates();
-  void sendUsageUpdate(const UsageMessage& update);
+  void sendUsageUpdate(UsageMessage& update);
   void ping();
   void exited();
 
