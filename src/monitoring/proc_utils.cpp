@@ -17,7 +17,6 @@
  */
 
 #include <asm/param.h>
-#include <dirent.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -26,6 +25,8 @@
 #include <vector>
 
 #include "proc_utils.hpp"
+#include "common/foreach.hpp"
+#include "common/utils.hpp"
 
 using std::cout;
 using std::endl;
@@ -36,9 +37,6 @@ using std::stringstream;
 using std::vector;
 
 namespace mesos { namespace internal { namespace monitoring {
-
-// TODO(adegtiar): make the procfs mount point configurable (currently assuming
-// '/proc').
 
 ProcessStats getProcessStats(const string& pid)
 {
@@ -104,20 +102,10 @@ double getStartTime(const string& pid)
 
 vector<string> getAllPids() {
   vector<string> pids = vector<string>();
-  string proc_dirname = "/proc";
-  DIR *proc_dp;
-  dirent *proc_entry;
-  if((proc_dp  = opendir(proc_dirname.c_str())) == NULL) {
-    cout << "Error opening " << proc_dirname << endl;
-  } else {
-    string filename;
-    while ((proc_entry = readdir(proc_dp)) != NULL) {
-      filename = string(proc_entry->d_name);
-      if (filename.find_first_not_of("0123456789") == string::npos) {
-        pids.push_back(filename);
-      }
+  foreach (const string& filename, utils::os::listdir("/proc")) {
+    if (filename.find_first_not_of("0123456789") == string::npos) {
+      pids.push_back(filename);
     }
-    closedir(proc_dp);
   }
   return pids;
 }
