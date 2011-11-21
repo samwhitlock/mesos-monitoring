@@ -17,8 +17,11 @@
  */
 
 #include <sys/time.h>
+#include <vector>
 
 #include "lxc_resource_monitor.hpp"
+
+#include "monitoring/proc_utils.hpp"
 
 #include "common/utils.hpp"
 #include "common/resources.hpp"
@@ -54,9 +57,7 @@ UsageReport LxcResourceMonitor::collectUsage()
   }
   
   getControlGroupValue(&ss, "cpuacct.usage");
-  timeval tv;
-  gettimeofday(&tv, NULL);
-  double asMillisecs = toMillisecs(tv);
+  double asMillisecs = getCurrentTime();
 
   double cpuTicks;
   ss >> cpuTicks;
@@ -108,6 +109,10 @@ bool LxcResourceMonitor::getControlGroupValue(
 
 double LxcResourceMonitor::getContainerStartTime()
 {
+  using namespace std;
+  vector<string> allPids = getAllPids();//TODO maybe sort this?
+
+  return getStartTime(allPids.front());
 }
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
