@@ -23,14 +23,15 @@
 #include <string>
 #include <vector>
 
-#include "monitoring/resource_monitor.hpp"
+#include "monitoring/process_resource_monitor.hpp"
 #include "proc_utils.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
-// An implementation of the ResourceMonitor class that retrieves resource
-// usage information for a process and all its (sub)children from proc.
-class ProcResourceMonitor: public ResourceMonitor
+// An implementation of the ProcessResourceMonitor class that retrieves
+// resource usage information for a process and all its (sub)children from
+// proc.
+class ProcResourceMonitor: public ProcessResourceMonitor
 {
 public:
 

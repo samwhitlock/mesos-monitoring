@@ -29,7 +29,7 @@
 #include "common/utils.hpp"
 #include "common/process_utils.hpp"
 #include "monitoring/resource_monitor.hpp"
-#include "monitoring/proc_resource_monitor.hpp"
+#include "monitoring/process_resource_monitor.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
@@ -120,7 +120,8 @@ void ProcessBasedIsolationModule::launchExecutor(
     infos[frameworkId][executorId]->pid = pid;
 
     // Start up the resource monitor.
-    info->resourceMonitor = new ProcResourceMonitor(utils::stringify(pid));
+    info->resourceMonitor = ProcessResourceMonitor::create(
+        utils::stringify(pid));
 
     // Tell the slave this executor has started.
     dispatch(slave, &Slave::executorStarted,
@@ -243,16 +244,20 @@ void ProcessBasedIsolationModule::sampleUsage(const FrameworkID& frameworkId,
   CHECK(info->pid != -1);
 
   ResourceMonitor* resourceMonitor = info->resourceMonitor;
-  UsageReport usageReport = resourceMonitor->collectUsage();
-
-  // Convert the report to a usage message.
-  UsageMessage usage;
-  usage.mutable_framework_id()->MergeFrom(frameworkId);
-  usage.mutable_executor_id()->MergeFrom(executorId);
-  usage.mutable_resources()->MergeFrom(usageReport.resources);
-  usage.set_timestamp(usageReport.timestamp);
-  usage.set_duration(usageReport.duration);
 
   // Send it to the slave.
-  dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
+  if (resourceMonitor != NULL) { // NULL on unsupported platforms.
+    UsageReport usageReport = resourceMonitor->collectUsage();
+
+    // Convert the report to a usage message.
+    UsageMessage usage;
+    usage.mutable_framework_id()->MergeFrom(frameworkId);
+    usage.mutable_executor_id()->MergeFrom(executorId);
+    usage.mutable_resources()->MergeFrom(usageReport.resources);
+    usage.set_timestamp(usageReport.timestamp);
+    usage.set_duration(usageReport.duration);
+
+    // Send it to the slave.
+    dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
+  }
 }
