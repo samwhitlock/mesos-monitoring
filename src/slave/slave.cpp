@@ -248,6 +248,8 @@ void Slave::initialize()
   installHttpHandler(
       "state.json",
       bind(&http::json::state, cref(*this), params::_1));
+
+  //TODO(sam) start the stat-scraping timer here!
 }
 
 
@@ -1420,6 +1422,7 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
 }
 
 void Slave::queueUsageUpdates() {
+  //TODO(sam): make this run periodically on a timer
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
@@ -1434,6 +1437,8 @@ void Slave::sendUsageUpdate(UsageMessage& update,
                             const FrameworkID& frameworkId,
                             const ExecutorID& executorId)
 {
+  //TODO(sam): is this thread safe?
+  //it is being called via dispatch from the isolation modules
   Executor* executor = frameworks[frameworkId]->getExecutor(executorId);
   if (executor != NULL) {
     executor->currentUsage = update;
