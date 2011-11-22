@@ -1439,9 +1439,12 @@ void Slave::sendUsageUpdate(UsageMessage& update,
 {
   //TODO(sam): is this thread safe?
   //it is being called via dispatch from the isolation modules
-  Executor* executor = frameworks[frameworkId]->getExecutor(executorId);
-  if (executor != NULL) {
-    executor->currentUsage = update;
+  Framework* framework = getFramework(frameworkId);
+  if (framework != NULL) {
+    Executor* executor = framework->getExecutor(executorId);
+    if (executor != NULL) {
+      executor->currentUsage = update;
+    }
   }// TODO(sam): is this an error if there is no executor?
 }
 
