@@ -34,11 +34,13 @@ class LxcResourceMonitor : public ResourceMonitor
     virtual ~LxcResourceMonitor();
 
     virtual UsageReport collectUsage();
-  private:
+  protected:
     std::string containerName;
 
     double previousTimestamp;
     double previousCpuTicks;
+
+    double getControlGroupDoubleValue(const std::string& property);
 
     bool getControlGroupValue(std::iostream* ios, const std::string& property);
 

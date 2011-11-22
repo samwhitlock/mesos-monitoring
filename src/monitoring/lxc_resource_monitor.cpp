@@ -36,28 +36,21 @@ LxcResourceMonitor::~LxcResourceMonitor() {}
 
 UsageReport LxcResourceMonitor::collectUsage()
 {
-  //collect memory usage
-  std::stringstream ss;
-  getControlGroupValue(&ss, "memory.memsw.usage_in_bytes");
-  double memoryInBytes;
-  ss >> memoryInBytes;
-
-  //collect cpu usage and do a diff
   if (previousTimestamp == -1) {
     previousTimestamp = getContainerStartTime();
   }
   
-  getControlGroupValue(&ss, "cpuacct.usage");
   double asMillisecs = getCurrentTime();
 
-  double cpuTicks;
-  ss >> cpuTicks;
+  double cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
 
   double elapsedTicks = cpuTicks - previousCpuTicks;
   previousCpuTicks = cpuTicks;
   
   double elapsedTime = asMillisecs - previousTimestamp;
   previousTimestamp = asMillisecs;
+
+  double memoryInBytes = getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
 
   Resource memory;
   memory.set_type(Resource::SCALAR);
@@ -96,6 +89,17 @@ bool LxcResourceMonitor::getControlGroupValue(
   }
 
   return true;
+}
+
+double LxcResourceMonitor::getControlGroupDoubleValue(
+    const std::string& property)
+{
+  std::stringstream ss;
+
+  getControlGroupValue(&ss, property);
+  double d;
+  ss >> d;
+  return d;
 }
 
 double LxcResourceMonitor::getContainerStartTime()
