@@ -254,5 +254,5 @@ void ProcessBasedIsolationModule::sampleUsage(const FrameworkID& frameworkId,
   usage.set_duration(usageReport.duration);
 
   // Send it to the slave.
-  dispatch(slave, &Slave::sendUsageUpdate, usage);
+  dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
 }

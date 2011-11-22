@@ -1430,7 +1430,9 @@ void Slave::queueUsageUpdates() {
   }
 }
 
-void Slave::sendUsageUpdate(UsageMessage& update)
+void Slave::sendUsageUpdate(UsageMessage& update,
+                            const FrameworkID& frameworkId,
+                            const ExecutorID& executorId)
 {
   update.mutable_slave_id()->MergeFrom(id);
   send(master, update);

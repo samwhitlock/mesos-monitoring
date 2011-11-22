@@ -90,7 +90,9 @@ public:
                        const FrameworkID& frameworkId,
                        const ExecutorID& executorId,
                        const std::string& data);
-  void sendUsageUpdate(UsageMessage& update);
+  void sendUsageUpdate(UsageMessage& update,
+                       const FrameworkID& frameworkId,
+                       const ExecutorID& executorId);
   void ping();
   void exited();
 
@@ -264,6 +266,8 @@ struct Executor
   const UUID uuid; // Distinguishes executor instances with same ExecutorID.
 
   UPID pid;
+
+  UsageMessage currentUsage; // the most recent usage reported from the isolation module
 
   bool shutdown; // Indicates if executor is being shut down.
 
