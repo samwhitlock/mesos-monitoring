@@ -90,7 +90,6 @@ public:
                        const FrameworkID& frameworkId,
                        const ExecutorID& executorId,
                        const std::string& data);
-  void queueUsageUpdates();
   void sendUsageUpdate(UsageMessage& update);
   void ping();
   void exited();
@@ -137,6 +136,8 @@ protected:
   // pair may be launched more than once on the same slave).
   std::string createUniqueWorkDirectory(const FrameworkID& frameworkId,
                                         const ExecutorID& executorId);
+
+  void queueUsageUpdates();
 
 private:
   // Http handlers, friends of the slave in order to access state,
