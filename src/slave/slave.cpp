@@ -1434,8 +1434,10 @@ void Slave::sendUsageUpdate(UsageMessage& update,
                             const FrameworkID& frameworkId,
                             const ExecutorID& executorId)
 {
-  update.mutable_slave_id()->MergeFrom(id);
-  send(master, update);
+  Executor* executor = frameworks[frameworkId]->getExecutor(executorId);
+  if (executor != NULL) {
+    //TODO(sam) update the executor's UsageMessage
+  }
 }
 
 }}} // namespace mesos { namespace internal { namespace slave {
