@@ -1457,8 +1457,14 @@ void Slave::sendUsageUpdate(UsageMessage& update,
     Executor* executor = framework->getExecutor(executorId);
     if (executor != NULL) {
       executor->currentUsage = update;
+    } else {
+      LOG(DEBUG) << "usage update sent for non-existent executor: "
+        << executorId << ", for frameworkId: " << frameworkId;
     }
-  }// TODO(sam): is this an error if there is no executor?
+  } else {
+    LOG(DEBUG) << "usage update sent for non-existent framework: "
+      << frameworkId << ", with executorID " << executorId;
+  }
 }
 
 }}} // namespace mesos { namespace internal { namespace slave {
