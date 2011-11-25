@@ -21,7 +21,6 @@
 
 #include <process/process.hpp>
 #include <process/protobuf.hpp>
-#include <process/timer.hpp>
 
 #include "slave/constants.hpp"
 #include "slave/http.hpp"
@@ -164,8 +163,6 @@ private:
 
   SlaveID id;
   SlaveInfo info;
-
-  Timer usageCollectionTimer;
 
   UPID master;
 

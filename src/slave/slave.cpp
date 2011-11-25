@@ -26,6 +26,8 @@
 #include "common/type_utils.hpp"
 #include "common/utils.hpp"
 
+#include <process/timer.hpp>
+
 #include "slave/slave.hpp"
 
 namespace params = std::tr1::placeholders;
@@ -73,8 +75,7 @@ Slave::Slave(const Resources& _resources,
   : ProcessBase("slave"),
     resources(_resources),
     local(_local),
-    isolationModule(_isolationModule),
-    usageCollectionTimer(delay(999999.0,self(),&Slave::queueUsageUpdates))
+    isolationModule(_isolationModule)
 {
   initialize();
 }
@@ -86,8 +87,7 @@ Slave::Slave(const Configuration& _conf,
   : ProcessBase("slave"),
     conf(_conf),
     local(_local),
-    isolationModule(_isolationModule),
-    usageCollectionTimer(delay(999999.0,self(),&Slave::queueUsageUpdates))
+    isolationModule(_isolationModule)
 {
   resources =
     Resources::parse(conf.get<string>("resources", "cpus:1;mem:1024"));
@@ -149,8 +149,6 @@ void Slave::registerOptions(Configurator* configurator)
 
 void Slave::initialize()
 {
-  usageCollectionTimer.cancel();
-
   // Start all the statistics at 0.
   CHECK(TASK_STARTING == TaskState_MIN);
   CHECK(TASK_LOST == TaskState_MAX);
@@ -292,12 +290,11 @@ void Slave::operator () ()
            &IsolationModule::initialize,
            conf, local, self());
 
-  usageCollectionTimer = delay(1.0,self(),&Slave::queueUsageUpdates);
+  delay(1.0,self(),&Slave::queueUsageUpdates);
 
   while (true) {
     serve(1);
     if (name() == TERMINATE) {
-      usageCollectionTimer.cancel();
       LOG(INFO) << "Asked to terminate by " << from();
       foreachkey (const FrameworkID& frameworkId, frameworks) {
         // TODO(benh): Because a shut down isn't instantaneous (but has
@@ -1438,7 +1435,6 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
 }
 
 void Slave::queueUsageUpdates() {
-  //TODO(sam): make this run periodically on a timer
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
@@ -1447,7 +1443,7 @@ void Slave::queueUsageUpdates() {
                frameworkId, executorId);
     }
   }
-  usageCollectionTimer = delay(1.0, self(), &Slave::queueUsageUpdates);
+  delay(1.0, self(), &Slave::queueUsageUpdates);
 }
 
 void Slave::sendUsageUpdate(UsageMessage& update,

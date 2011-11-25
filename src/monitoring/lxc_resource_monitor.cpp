@@ -52,8 +52,7 @@ UsageReport LxcResourceMonitor::collectUsage()
 
   double memoryInBytes = getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
 
-  LOG(INFO) << "Memory usage in bytes: " << memoryInBytes
-            << ", cpu usage: " << elapsedTicks;
+  LOG(INFO) << "Memory usage in bytes: " << memoryInBytes << ", cpu usage: " << elapsedTicks;
 
   Resource memory;
   memory.set_type(Resource::SCALAR);
