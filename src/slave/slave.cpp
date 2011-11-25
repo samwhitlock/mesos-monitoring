@@ -1458,11 +1458,11 @@ void Slave::sendUsageUpdate(UsageMessage& update,
     if (executor != NULL) {
       executor->currentUsage = update;
     } else {
-      LOG(DEBUG) << "usage update sent for non-existent executor: "
+      LOG(INFO) << "usage update sent for non-existent executor: "
         << executorId << ", for frameworkId: " << frameworkId;
     }
   } else {
-    LOG(DEBUG) << "usage update sent for non-existent framework: "
+    LOG(INFO) << "usage update sent for non-existent framework: "
       << frameworkId << ", with executorID " << executorId;
   }
 }
