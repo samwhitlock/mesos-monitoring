@@ -17,3 +17,16 @@
  */
 
 #include <gtest/gtest.h>
+
+/*
+ * TODO for testing lxc
+ *
+ * mock LxcResourceMonitor so that you can control the following methods
+ * - getControlGroupDoubleValue (for memory and cpu separately)
+ * - getContainerStartTime: just have it return some constant
+ *  
+ * What you need to verify with this:
+ * -verify the usage report you get back after each call is what you expect (make your own)
+ * -DO NOT read the internal state of LxcResourceMonitor! You should be free to change this in the future 
+ *  without worrying about breaking tests so long as it outputs the same thing.
+ */
