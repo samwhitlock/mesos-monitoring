@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+#include "monitoring/lxc_resource_monitor.hpp"
 
 /*
  * TODO for testing lxc
@@ -30,3 +32,9 @@
  * -DO NOT read the internal state of LxcResourceMonitor! You should be free to change this in the future 
  *  without worrying about breaking tests so long as it outputs the same thing.
  */
+
+using namespace mesos::internal::monitoring;
+
+//class MockLxcResourceMonitor : public LxcResourceMonitor
+//{
+//};
