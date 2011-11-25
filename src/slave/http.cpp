@@ -60,6 +60,11 @@ JSON::Object model(const Resources& resources)
   return object;
 }
 
+JSON::Object model(const UsageMessage& usageMessage)
+{
+  JSON::Object a;//TODO(sam or alex): fill the model in here
+  return a;//TODO this is just to get it to compile
+}
 
 JSON::Object model(const Executor& executor)
 {
@@ -68,6 +73,7 @@ JSON::Object model(const Executor& executor)
   object.values["uri"] = executor.info.uri();
   object.values["directory"] = executor.directory;
   object.values["resources"] = model(executor.resources);
+  object.values["usage"] = model(executor.currentUsage);
 
   JSON::Array array;
 
