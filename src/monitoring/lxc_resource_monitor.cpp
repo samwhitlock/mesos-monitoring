@@ -72,7 +72,7 @@ UsageReport LxcResourceMonitor::collectUsage()
 }
 
 bool LxcResourceMonitor::getControlGroupValue(
-    std::iostream* ios, const std::string& property)
+    std::iostream* ios, const std::string& property) const
 {
   Try<int> status =
     utils::os::shell(ios, "lxc-cgroup -n %s %s",
@@ -94,7 +94,7 @@ bool LxcResourceMonitor::getControlGroupValue(
 }
 
 double LxcResourceMonitor::getControlGroupDoubleValue(
-    const std::string& property)
+    const std::string& property) const
 {
   std::stringstream ss;
 
@@ -104,7 +104,7 @@ double LxcResourceMonitor::getControlGroupDoubleValue(
   return d;
 }
 
-double LxcResourceMonitor::getContainerStartTime()
+double LxcResourceMonitor::getContainerStartTime() const
 {
   using namespace std;
   vector<string> allPids = getAllPids();//TODO maybe sort this?

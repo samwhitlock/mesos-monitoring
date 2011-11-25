@@ -40,13 +40,13 @@ class LxcResourceMonitor : public ResourceMonitor
     double previousTimestamp;
     double previousCpuTicks;
 
-    double getControlGroupDoubleValue(const std::string& property);
+    double getControlGroupDoubleValue(const std::string& property) const;
 
-    bool getControlGroupValue(std::iostream* ios, const std::string& property);
+    bool getControlGroupValue(std::iostream* ios, const std::string& property) const;
 
     // gets the approximate start time for the container
     // used initial call of collectUsage when no previous data is available
-    double getContainerStartTime();
+    double getContainerStartTime() const;
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
