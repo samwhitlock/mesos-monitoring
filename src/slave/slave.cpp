@@ -21,8 +21,6 @@
 #include <algorithm>
 #include <iomanip>
 
-#include <process/timer.hpp>
-
 #include "common/build.hpp"
 #include "common/option.hpp"
 #include "common/type_utils.hpp"
@@ -75,7 +73,8 @@ Slave::Slave(const Resources& _resources,
   : ProcessBase("slave"),
     resources(_resources),
     local(_local),
-    isolationModule(_isolationModule)
+    isolationModule(_isolationModule),
+    usageCollectionTimer(delay(999999.0,self(),&Slave::queueUsageUpdates))
 {
   initialize();
 }
@@ -87,7 +86,8 @@ Slave::Slave(const Configuration& _conf,
   : ProcessBase("slave"),
     conf(_conf),
     local(_local),
-    isolationModule(_isolationModule)
+    isolationModule(_isolationModule),
+    usageCollectionTimer(delay(999999.0,self(),&Slave::queueUsageUpdates))
 {
   resources =
     Resources::parse(conf.get<string>("resources", "cpus:1;mem:1024"));
@@ -149,6 +149,8 @@ void Slave::registerOptions(Configurator* configurator)
 
 void Slave::initialize()
 {
+  usageCollectionTimer.cancel();
+
   // Start all the statistics at 0.
   CHECK(TASK_STARTING == TaskState_MIN);
   CHECK(TASK_LOST == TaskState_MAX);
@@ -249,8 +251,6 @@ void Slave::initialize()
   installHttpHandler(
       "state.json",
       bind(&http::json::state, cref(*this), params::_1));
-
-  //TODO(sam) start the stat-scraping timer here!
 }
 
 
@@ -292,9 +292,12 @@ void Slave::operator () ()
            &IsolationModule::initialize,
            conf, local, self());
 
+  usageCollectionTimer = delay(1.0,self(),&Slave::queueUsageUpdates);
+
   while (true) {
     serve(1);
     if (name() == TERMINATE) {
+      usageCollectionTimer.cancel();
       LOG(INFO) << "Asked to terminate by " << from();
       foreachkey (const FrameworkID& frameworkId, frameworks) {
         // TODO(benh): Because a shut down isn't instantaneous (but has
@@ -1444,6 +1447,7 @@ void Slave::queueUsageUpdates() {
                frameworkId, executorId);
     }
   }
+  usageCollectionTimer = delay(1.0, self(), &Slave::queueUsageUpdates);
 }
 
 void Slave::sendUsageUpdate(UsageMessage& update,
