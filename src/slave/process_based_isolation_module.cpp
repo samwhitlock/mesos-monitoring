@@ -44,6 +44,7 @@ using std::map;
 using std::string;
 
 using process::wait; // Necessary on some OS's to disambiguate.
+using utils::stringify;
 
 
 ProcessBasedIsolationModule::ProcessBasedIsolationModule()
@@ -120,8 +121,7 @@ void ProcessBasedIsolationModule::launchExecutor(
     infos[frameworkId][executorId]->pid = pid;
 
     // Start up the resource monitor.
-    info->resourceMonitor = ProcessResourceMonitor::create(
-        utils::stringify(pid));
+    info->resourceMonitor = ProcessResourceMonitor::create(stringify(pid));
 
     // Tell the slave this executor has started.
     dispatch(slave, &Slave::executorStarted,
