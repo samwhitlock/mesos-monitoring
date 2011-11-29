@@ -38,6 +38,7 @@ LxcCollector::LxcCollector(const std::string& _containerName)
 
 double LxcCollector::getMemoryUsage()
 {
+  return getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
 }
 
 Rate LxcCollector::getCpuUsage()
