@@ -21,6 +21,7 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
+//TODO(sam): maybe template these for different duration, difference types
 struct Rate {
   Rate(const double _duration, const double _difference)
     : duration(_duration), difference(_difference) {}
