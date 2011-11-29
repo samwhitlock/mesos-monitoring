@@ -19,9 +19,26 @@
 #ifndef __COLLECTOR_HPP__
 #define __COLLECTOR_HPP__
 
-#include "common/resources.hpp"
-
 namespace mesos { namespace internal { namespace monitoring {
+
+struct Rate {
+  Rate(const double _duration, const double _difference)
+    : duration(_duration), difference(_difference) {}
+
+  double duration;
+  double difference;
+};
+
+class Collector
+{
+public:
+  virtual ~Collector() {}
+
+  virtual double getMemoryUsage() = 0;
+
+  virtual Rate getCpuUsage() = 0;
+  
+};
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
