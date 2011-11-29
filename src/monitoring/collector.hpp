@@ -29,6 +29,10 @@ struct Rate {
   double difference;
 };
 
+// TODO(sam): write more doc
+// An interface for a module that collects usage/utilization information
+// from the operating system. The purpose of this module is to provide an 
+// interface for ResourceMonitor to have as a member variable.
 class Collector
 {
 public:
