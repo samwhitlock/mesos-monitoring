@@ -35,7 +35,7 @@ public:
 //TODO(sam): add protected helper methods
 protected:
   const std::string& containerName;
-  double previousTimestamp;
+  double previousTimestamp;//FIXME(sam): having the 'uninitialized' value of -1.0 is a little hacky
   double previousCpuTicks;
 
   double getControlGroupDoubleValue(const std::string& property) const;
