@@ -27,6 +27,10 @@
 #include "common/resources.hpp"
 #include "mesos/mesos.hpp"
 
+//TODO(sam)
+//should we assume that the container is not already created
+//i.e. would it be best to initialize previousTimestamp upon the first call 
+//to a rate-retrieving method?
 LxcCollector::LxcCollector(const std::string& _containerName)
   : containerName(_containerName), previousTimestamp(-1.0), previousCpuTicks(0.0)
 {
