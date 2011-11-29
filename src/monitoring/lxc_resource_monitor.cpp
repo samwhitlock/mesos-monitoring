@@ -36,7 +36,7 @@ LxcResourceMonitor::~LxcResourceMonitor() {}
 
 UsageReport LxcResourceMonitor::collectUsage()
 {
-  if (previousTimestamp == -1) {
+  if (previousTimestamp == -1.0) {
     previousTimestamp = getContainerStartTime();
   }
   
