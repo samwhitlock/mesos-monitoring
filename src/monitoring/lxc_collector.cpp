@@ -28,7 +28,7 @@
 #include "mesos/mesos.hpp"
 
 LxcCollector::LxcCollector(const std::string& _containerName)
-  : containerName(_containerName), previousTimestamp(0.0), previousCpuTicks(0.0)
+  : containerName(_containerName), previousTimestamp(-1.0), previousCpuTicks(0.0)
 {
 }
 
