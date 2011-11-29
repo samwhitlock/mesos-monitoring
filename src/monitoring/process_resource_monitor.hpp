@@ -34,6 +34,8 @@ public:
   // Creates a new ProcessResourceMonitor appropriate for the current
   // system. If no monitor can be constructed, returns NULL.
   static ProcessResourceMonitor* create(const std::string& root_pid);
+
+  virtual ~ProcessResourceMonitor() {}
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {

@@ -28,7 +28,6 @@
 #include "common/type_utils.hpp"
 #include "common/utils.hpp"
 #include "common/process_utils.hpp"
-#include "monitoring/resource_monitor.hpp"
 #include "monitoring/process_resource_monitor.hpp"
 
 using namespace mesos;

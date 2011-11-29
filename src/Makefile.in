@@ -134,7 +134,7 @@ ifeq ($(OS_NAME),linux)
 endif
 
 MONITORING_OBJ = monitoring/proc_resource_monitor.o monitoring/proc_utils.o \
-      monitoring/lxc_resource_monitor.o
+      monitoring/lxc_resource_monitor.o monitoring/process_resource_monitor.o
 
 SLAVE_OBJ += $(MONITORING_OBJ)
 
