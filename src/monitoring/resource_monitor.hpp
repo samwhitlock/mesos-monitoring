@@ -27,8 +27,8 @@ namespace mesos { namespace internal { namespace monitoring {
 // to a previous measurement, and are therefore associated with a duration.
 struct UsageReport {
   UsageReport(Resources _resources,
-              const long _timestamp,
-              const long _duration)
+              const double _timestamp,
+              const double _duration)
           : resources(_resources),
             timestamp(_timestamp),
             duration(_duration) {}
