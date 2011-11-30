@@ -35,7 +35,7 @@ public:
   virtual Rate getCpuUsage();
 
 protected:
-  const std::string& containerName;
+  const std::string containerName;
   double previousTimestamp;//FIXME(sam): having the 'uninitialized' value of -1.0 is a little hacky
   double previousCpuTicks;
 
