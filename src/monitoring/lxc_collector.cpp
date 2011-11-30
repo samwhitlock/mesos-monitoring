@@ -27,6 +27,7 @@
 #include "common/resources.hpp"
 #include "mesos/mesos.hpp"
 
+namespace mesos { namespace internal { namespace monitoring {
 //TODO(sam)
 //should we assume that the container is not already created
 //i.e. would it be best to initialize previousTimestamp upon the first call 
@@ -80,8 +81,10 @@ double LxcCollector::getControlGroupDoubleValue(const std::string& property) con
 double LxcCollector::getContainerStartTime() const
 {
   using namespace std;
-  vector<string> allPids = getAllPids();//TODO maybe sort this?
+  vector<string> allPids = getAllPids();//TODO does this need to be sorted?
 
   return getStartTime(allPids.front());
 }
+
+}}} // namespace mesos { namespace internal { namespace monitoring {
 

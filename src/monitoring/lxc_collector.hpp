@@ -19,6 +19,8 @@
 #ifndef __LXC_COLLECTOR_HPP__
 #define __LXC_COLLECTOR_HPP__
 
+#include <string>
+
 #include "collector.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
@@ -32,7 +34,6 @@ public:
   virtual double getMemoryUsage();
   virtual Rate getCpuUsage();
 
-//TODO(sam): add protected helper methods
 protected:
   const std::string& containerName;
   double previousTimestamp;//FIXME(sam): having the 'uninitialized' value of -1.0 is a little hacky
