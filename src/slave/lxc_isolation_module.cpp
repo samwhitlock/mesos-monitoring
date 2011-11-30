@@ -29,7 +29,7 @@
 #include "common/units.hpp"
 #include "common/utils.hpp"
 #include "monitoring/resource_monitor.hpp"
-#include "monitoring/lxc_resource_monitor.hpp"
+#include "monitoring/lxc_collector.hpp"
 
 #include "launcher/launcher.hpp"
 
@@ -133,7 +133,8 @@ void LxcIsolationModule::launchExecutor(
   info->frameworkId = frameworkId;
   info->executorId = executorId;
   info->container = container;
-  info->resourceMonitor = new LxcResourceMonitor(container);//TODO sam this probably needs a full namespace qualification
+  LxcCollector resourceCollector(container);
+  info->resourceMonitor = new ResourceMonitor(resourceCollector);
   info->pid = -1;
 
   infos[frameworkId][executorId] = info;
