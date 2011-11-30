@@ -61,4 +61,3 @@ public:
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
 #endif // __RESOURCE_MONITOR_HPP__
-
