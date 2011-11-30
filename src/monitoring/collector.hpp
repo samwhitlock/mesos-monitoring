@@ -30,17 +30,28 @@ struct Rate {
   double difference;
 };
 
-// TODO(sam): write more doc
-// An interface for a module that collects usage/utilization information
-// from the operating system. The purpose of this module is to provide an 
-// interface for ResourceMonitor to have as a member variable.
+/*
+ * An interface for a module that collects usage/utilization information
+ * from the operating system. The purpose of this module is to provide an 
+ * interface for ResourceMonitor to have as a member variable.
+ *
+ * Each get method in Collector will return the appropriate value from the underlying 
+ * system. The values are returned are described for each method.
+ *
+ * For methods that return a rate, the class that implements this interface 
+ * will need to keep around the state from the previous call to get that usage 
+ * statistic, including the ability to deal with special cases for inital calls.
+ */
 class Collector
 {
 public:
   virtual ~Collector() {}
 
+  // Returns the number of bytes currently used by the monitored system.
   virtual double getMemoryUsage() = 0;
 
+  // Returns the milliseconds of CPU time the monitored system has received
+  // since it started.
   virtual Rate getCpuUsage() = 0;
   
 };
