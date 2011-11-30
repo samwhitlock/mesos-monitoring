@@ -37,6 +37,8 @@ LxcCollector::LxcCollector(const std::string& _containerName)
 {
 }
 
+LxcCollector::~LxcCollector() {}
+
 double LxcCollector::getMemoryUsage()
 {
   return getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
@@ -44,6 +46,21 @@ double LxcCollector::getMemoryUsage()
 
 Rate LxcCollector::getCpuUsage()
 {
+  if (previousTimestamp == -1.0) {
+    previousTimestamp = getContainerStartTime();
+  }
+  
+  double asMillisecs = getCurrentTime();
+
+  double cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
+
+  double elapsedTicks = cpuTicks - previousCpuTicks;
+  previousCpuTicks = cpuTicks;
+  
+  double elapsedTime = asMillisecs - previousTimestamp;
+  previousTimestamp = asMillisecs;
+
+  return Rate(elapsedTime, elapsedTicks);
 }
 
 bool LxcCollector::getControlGroupValue(

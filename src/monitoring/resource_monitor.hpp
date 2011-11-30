@@ -19,6 +19,7 @@
 #ifndef __RESOURCE_MONITOR_HPP__
 #define __RESOURCE_MONITOR_HPP__
 
+#include "collector.hpp"
 #include "common/resources.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
@@ -48,6 +49,7 @@ struct UsageReport {
 class ResourceMonitor
 {
 public:
+  ResourceMonitor(const Collector& collector);
 
   virtual ~ResourceMonitor() {}
 
@@ -55,7 +57,10 @@ public:
   // them. For applicable resource, each call reports usage over the time period
   // since the previous invocation. For the first invocation, returns the total
   // usage since the initialization of the resource being monitored.
-  virtual UsageReport collectUsage() = 0;
+  virtual UsageReport collectUsage();
+
+protected:
+  Collector collector;
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {

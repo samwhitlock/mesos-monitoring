@@ -28,7 +28,7 @@ namespace mesos { namespace internal { namespace monitoring {
 class LxcCollector : public Collector
 {
 public:
-  LxcCollector(const std::string& containerName);
+  LxcCollector(const std::string& _containerName);
   virtual ~LxcCollector();
 
   virtual double getMemoryUsage();
