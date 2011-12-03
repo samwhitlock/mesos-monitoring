@@ -18,6 +18,7 @@
 
 #include <asm/param.h>
 #include <fstream>
+#include <glog/logging.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -35,28 +36,34 @@ using std::string;
 using std::stringstream;
 using std::vector;
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 ProcessStats getProcessStats(const string& pid)
 {
   ProcessStats pinfo = {};
   string proc_path = "/proc/" + pid + "/stat";
   ifstream stat_stream(proc_path.c_str(), ios_base::in);
-  // Dummy vars for leading entries in stat that we don't care about.
-  string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
-  string cutime, cstime, priority, nice, O, itrealvalue, starttime, vsize;
-  // These are the fields we want.
-  long rss;
-  long utime, stime;
-  // Parse all fields from stat.
-  stat_stream >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
-              >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
-              >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
-              >> cstime >> priority >> nice >> O >> itrealvalue
-              >> pinfo.starttime >> vsize >> rss;
-  stat_stream.close();
-  pinfo.mem_usage = rss * sysconf(_SC_PAGE_SIZE);
-  pinfo.cpu_time = utime + stime;
+  if (stat_stream.is_open()) {
+    // Dummy vars for leading entries in stat that we don't care about.
+    string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
+    string cutime, cstime, priority, nice, O, itrealvalue, starttime, vsize;
+    // These are the fields we want.
+    long rss;
+    long utime, stime;
+    // Parse all fields from stat.
+    stat_stream >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
+                >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
+                >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
+                >> cstime >> priority >> nice >> O >> itrealvalue
+                >> pinfo.starttime >> vsize >> rss;
+    stat_stream.close();
+    pinfo.mem_usage = rss * sysconf(_SC_PAGE_SIZE);
+    pinfo.cpu_time = utime + stime;
+  } else {
+    LOG(ERROR) << "Cannot open " << proc_path << " to get stats";
+  }
   return pinfo;
 }
 
@@ -64,10 +71,10 @@ double getBootTime()
 {
   string line;
   long btime = 0;
-  ifstream stats_file ("/proc/stat");
-  if (stats_file.is_open()) {
-    while (stats_file.good()) {
-      getline (stats_file,line);
+  ifstream stat_file("/proc/stat");
+  if (stat_file.is_open()) {
+    while (stat_file.good()) {
+      getline (stat_file,line);
       if (line.compare(0, 6, "btime ") == 0) {
         stringstream btime_str(line.substr(6));
         btime_str >> btime;
@@ -77,9 +84,9 @@ double getBootTime()
     if (btime == 0) {
       LOG(ERROR) << "Unable to read boot time from proc";
     }
-    stats_file.close();
+    stat_file.close();
   } else {
-    LOG(ERROR) << "Unable to open stats file";
+    LOG(ERROR) << "Unable to open stat file";
   }
   return btime * 1000.0;
 }
@@ -108,4 +115,6 @@ vector<string> getAllPids() {
   return pids;
 }
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
