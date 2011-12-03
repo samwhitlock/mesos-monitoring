@@ -22,7 +22,9 @@
 #include <string>
 #include <vector>
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 struct ProcessStats {
   std::string pid;
@@ -52,6 +54,8 @@ double getStartTime(const std::string& pid);
 // Reads from proc and returns a vector of all processes running on the system.
 std::vector<std::string> getAllPids();
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
 
 #endif // __PROC_UTILS_HPP__
