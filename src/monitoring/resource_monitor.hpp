@@ -49,9 +49,9 @@ struct UsageReport {
 class ResourceMonitor
 {
 public:
-  ResourceMonitor(const Collector& collector);
+  ResourceMonitor(const Collector* collector);
 
-  virtual ~ResourceMonitor() {}
+  virtual ~ResourceMonitor();
 
   // Collects resource usage statistics and returns a UsageReport describing
   // them. For applicable resource, each call reports usage over the time period
@@ -60,7 +60,7 @@ public:
   virtual UsageReport collectUsage();
 
 protected:
-  Collector collector;
+  Collector* collector;
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {

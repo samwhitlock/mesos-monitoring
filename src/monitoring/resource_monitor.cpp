@@ -22,8 +22,13 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
-  ResourceMonitor::ResourceMonitor(const Collector& _collector)
+  ResourceMonitor::ResourceMonitor(const Collector* _collector)
     : collector(_collector) {}
+
+  ResourceMonitor::~ResourceMonitor()
+  {
+    delete collector;
+  }
 
   // The default implementation collects only the cpu and memory
   // for use in creating a UsageMessage

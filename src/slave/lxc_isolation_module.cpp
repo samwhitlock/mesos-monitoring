@@ -133,7 +133,7 @@ void LxcIsolationModule::launchExecutor(
   info->frameworkId = frameworkId;
   info->executorId = executorId;
   info->container = container;
-  LxcCollector resourceCollector(container);
+  LxcCollector* resourceCollector = new LxcCollector(container);
   info->resourceMonitor = new ResourceMonitor(resourceCollector);
   info->pid = -1;
 
