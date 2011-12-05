@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-#ifndef __LXC_COLLECTOR_HPP__
-#define __LXC_COLLECTOR_HPP__
+#ifndef __LXC_RESOURCE_COLLECTOR_HPP__
+#define __LXC_RESOURCE_COLLECTOR_HPP__
 
 #include <string>
 
-#include "collector.hpp"
+#include "resource_collector.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
-class LxcCollector : public Collector
+class LxcResourceResourceCollector : public ResourceResourceCollector
 {
 public:
-  LxcCollector(const std::string& _containerName);
-  virtual ~LxcCollector();
+  LxcResourceCollector(const std::string& _containerName);
+  virtual ~LxcResourceCollector();
 
   virtual double getMemoryUsage();
   virtual Rate getCpuUsage();
@@ -50,5 +50,5 @@ protected:
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
-#endif // __LXC_COLLECTOR_HPP__
+#endif // __LXC_RESOURCE_COLLECTOR_HPP__
 

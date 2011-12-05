@@ -16,28 +16,26 @@
  * limitations under the license.
  */
 
-#ifndef __PROCESS_RESOURCE_MONITOR_HPP__
-#define __PROCESS_RESOURCE_MONITOR_HPP__
-
 #include <string>
 
-#include "monitoring/resource_monitor.hpp"
+#if defined(__linux__) || defined(__sun__)
+#include "monitoring/proc_resource_collector.hpp"
+#endif
+
+#include "monitoring/collector.hpp"
+
+using std::string;
 
 namespace mesos { namespace internal { namespace monitoring {
 
-// An abstract implementation of the ResourceMonitor class that
-// retrieves resource usage information for a process or processes.
-class ProcessResourceMonitor: public ResourceMonitor
+ProcessResourceCollector* ProcessResourceCollector::create(const string& root_pid)
 {
-public:
-
-  // Creates a new ProcessResourceMonitor appropriate for the current
-  // system. If no monitor can be constructed, returns NULL.
-  static ProcessResourceMonitor* create(const std::string& root_pid);
-
-  virtual ~ProcessResourceMonitor() {}
-};
+#if defined(__linux__) || defined(__sun__)
+  return new ProcResourceCollector(root_pid);
+#else
+  return NULL;
+#endif
+}
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
-#endif // __PROCESS_RESOURCE_MONITOR_HPP__

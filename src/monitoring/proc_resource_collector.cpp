@@ -23,7 +23,7 @@
 #include "common/resources.hpp"
 #include "common/foreach.hpp"
 
-#include "monitoring/proc_resource_monitor.hpp"
+#include "monitoring/proc_resource_collector.hpp"
 #include "proc_utils.hpp"
 
 using std::ios_base;
@@ -32,12 +32,20 @@ using std::vector;
 
 namespace mesos { namespace internal { namespace monitoring {
 
-ProcResourceMonitor::ProcResourceMonitor(const string& _root_pid)
+ProcResourceCollector::ProcResourceCollector(const string& _root_pid)
   : root_pid(_root_pid), initialized(false) {}
 
-ProcResourceMonitor::~ProcResourceMonitor() {}
+ProcResourceCollector::~ProcResourceCollector() {}
 
-void ProcResourceMonitor::collectUsage(double& mem_usage,
+virtual double ProcResourceCollector::getMemoryUsage()
+{
+}
+
+virtual Rate ProcResourceCollector::getCpuUsage()
+{
+}
+
+void ProcResourceCollector::collectUsage(double& mem_usage,
     double& cpu_usage,
     double& timestamp,
     double& duration)
@@ -63,7 +71,7 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
-vector<ProcessStats> ProcResourceMonitor::getProcessTreeStats()
+vector<ProcessStats> ProcResourceCollector::getProcessTreeStats()
 {
   vector<ProcessStats> process_tree;
   ProcessStats root_process = getProcessStats(root_pid);
@@ -83,7 +91,7 @@ vector<ProcessStats> ProcResourceMonitor::getProcessTreeStats()
   return process_tree;
 }
 
-void ProcResourceMonitor::aggregateResourceUsage(
+void ProcResourceCollector::aggregateResourceUsage(
     const vector<ProcessStats>& processes,
     double& mem_total,
     double& cpu_total)
@@ -96,14 +104,15 @@ void ProcResourceMonitor::aggregateResourceUsage(
   }
 }
 
-UsageReport ProcResourceMonitor::collectUsage()
+UsageReport ProcResourceCollector::collectUsage()
 {
   double mem_usage, cpu_usage, timestamp, duration;
   collectUsage(mem_usage, cpu_usage, timestamp, duration);
   return generateUsageReport(mem_usage, cpu_usage, timestamp, duration);
 }
 
-UsageReport ProcResourceMonitor::generateUsageReport(const double& mem_usage,
+//TODO(sam,alex) refactor into collector methods at top of file
+UsageReport ProcResourceCollector::generateUsageReport(const double& mem_usage,
     const double& cpu_usage,
     const double& timestamp,
     const double& duration)

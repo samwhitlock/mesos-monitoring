@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-#ifndef __COLLECTOR_HPP__
-#define __COLLECTOR_HPP__
+#ifndef __RESOURCE_COLLECTOR_HPP__
+#define __RESOURCE_COLLECTOR_HPP__
 
 namespace mesos { namespace internal { namespace monitoring {
 
@@ -35,17 +35,17 @@ struct Rate {
  * from the operating system. The purpose of this module is to provide an 
  * interface for ResourceMonitor to have as a member variable.
  *
- * Each get method in Collector will return the appropriate value from the underlying 
+ * Each get method in ResourceCollector will return the appropriate value from the underlying 
  * system. The values are returned are described for each method.
  *
  * For methods that return a rate, the class that implements this interface 
  * will need to keep around the state from the previous call to get that usage 
  * statistic, including the ability to deal with special cases for inital calls.
  */
-class Collector
+class ResourceCollector
 {
 public:
-  virtual ~Collector() {}
+  virtual ~ResourceCollector() {}
 
   // Returns the number of bytes currently used by the monitored system.
   virtual double getMemoryUsage() = 0;
@@ -58,5 +58,5 @@ public:
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
-#endif // __COLLECTOR_HPP__
+#endif // __RESOURCE_COLLECTOR_HPP__
 

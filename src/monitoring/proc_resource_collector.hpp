@@ -16,30 +16,32 @@
  * limitations under the License.
  */
 
-#ifndef __PROC_RESOURCE_MONITOR_HPP__
-#define __PROC_RESOURCE_MONITOR_HPP__
+#ifndef __PROC_RESOURCE_COLLECTOR_HPP__
+#define __PROC_RESOURCE_COLLECTOR_HPP__
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "monitoring/process_resource_monitor.hpp"
+#include "monitoring/process_resource_collector.hpp"
 #include "proc_utils.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
-// An implementation of the ProcessResourceMonitor class that retrieves
+// An implementation of the ProcessResourceCollector class that retrieves
 // resource usage information for a process and all its (sub)children from
 // proc.
-class ProcResourceMonitor: public ProcessResourceMonitor
+class ProcResourceCollector : public ProcessResourceCollector
 {
 public:
 
-  ProcResourceMonitor(const std::string& root_pid);
+  ProcResourceCollector(const std::string& root_pid);
 
-  virtual ~ProcResourceMonitor();
+  virtual ~ProcResourceCollector();
 
-  virtual UsageReport collectUsage();
+  virtual double getMemoryUsage();
+
+  virtual Rate getCpuUsage();
 
 private:
 
@@ -75,4 +77,5 @@ private:
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
-#endif // __PROC_RESOURCE_MONITOR_HPP__
+#endif // __PROC_RESOURCE_COLLECTOR_HPP__
+

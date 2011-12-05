@@ -29,7 +29,7 @@
 #include "common/units.hpp"
 #include "common/utils.hpp"
 #include "monitoring/resource_monitor.hpp"
-#include "monitoring/lxc_collector.hpp"
+#include "monitoring/lxc_resource_collector.hpp"
 
 #include "launcher/launcher.hpp"
 
@@ -133,7 +133,7 @@ void LxcIsolationModule::launchExecutor(
   info->frameworkId = frameworkId;
   info->executorId = executorId;
   info->container = container;
-  LxcCollector* resourceCollector = new LxcCollector(container);
+  LxcResourceCollector* resourceCollector = new LxcResourceCollector(container);
   info->resourceMonitor = new ResourceMonitor(resourceCollector);
   info->pid = -1;
 

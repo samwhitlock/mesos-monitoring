@@ -19,7 +19,7 @@
 #include <sys/time.h>
 #include <vector>
 
-#include "lxc_collector.hpp"
+#include "lxc_resource_collector.hpp"
 
 #include "monitoring/proc_utils.hpp"
 
@@ -29,19 +29,19 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
-LxcCollector::LxcCollector(const std::string& _containerName)
+LxcResourceCollector::LxcResourceCollector(const std::string& _containerName)
   : containerName(_containerName), previousTimestamp(-1.0), previousCpuTicks(0.0)
 {
 }
 
-LxcCollector::~LxcCollector() {}
+LxcResourceCollector::~LxcResourceCollector() {}
 
-double LxcCollector::getMemoryUsage()
+double LxcResourceCollector::getMemoryUsage()
 {
   return getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
 }
 
-Rate LxcCollector::getCpuUsage()
+Rate LxcResourceCollector::getCpuUsage()
 {
   if (previousTimestamp == -1.0) {
     previousTimestamp = getContainerStartTime();
@@ -60,7 +60,7 @@ Rate LxcCollector::getCpuUsage()
   return Rate(elapsedTime, elapsedTicks);
 }
 
-bool LxcCollector::getControlGroupValue(
+bool LxcResourceCollector::getControlGroupValue(
     std::iostream* ios, const std::string& property) const
 {
   Try<int> status =
@@ -82,7 +82,7 @@ bool LxcCollector::getControlGroupValue(
   return true;
 }
 
-double LxcCollector::getControlGroupDoubleValue(const std::string& property) const
+double LxcResourceCollector::getControlGroupDoubleValue(const std::string& property) const
 {
   std::stringstream ss;
 
@@ -92,7 +92,7 @@ double LxcCollector::getControlGroupDoubleValue(const std::string& property) con
   return d;
 }
 
-double LxcCollector::getContainerStartTime() const
+double LxcResourceCollector::getContainerStartTime() const
 {
   using namespace std;
   vector<string> allPids = getAllPids();//TODO does this need to be sorted?

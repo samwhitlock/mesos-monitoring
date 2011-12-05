@@ -133,9 +133,9 @@ ifeq ($(OS_NAME),linux)
   SLAVE_OBJ += slave/lxc_isolation_module.o
 endif
 
-MONITORING_OBJ = monitoring/proc_resource_monitor.o monitoring/proc_utils.o \
-      monitoring/lxc_collector.o \
-      monitoring/process_resource_monitor.o monitoring/resource_monitor.o
+MONITORING_OBJ = monitoring/proc_resource_collector.o monitoring/proc_utils.o \
+      monitoring/lxc_resource_collector.o monitoring/process_resource_collector.o \
+			monitoring/resource_monitor.o
 
 SLAVE_OBJ += $(MONITORING_OBJ)
 

@@ -19,7 +19,7 @@
 #ifndef __RESOURCE_MONITOR_HPP__
 #define __RESOURCE_MONITOR_HPP__
 
-#include "collector.hpp"
+#include "resource_collector.hpp"
 #include "common/resources.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
@@ -49,7 +49,7 @@ struct UsageReport {
 class ResourceMonitor
 {
 public:
-  ResourceMonitor(const Collector* collector);
+  ResourceMonitor(const ResourceCollector* collector);
 
   virtual ~ResourceMonitor();
 
@@ -60,7 +60,7 @@ public:
   virtual UsageReport collectUsage();
 
 protected:
-  Collector* collector;
+  ResourceCollector* collector;
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
