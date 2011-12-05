@@ -22,7 +22,7 @@
 #include "monitoring/proc_resource_collector.hpp"
 #endif
 
-#include "monitoring/collector.hpp"
+#include "monitoring/process_resource_collector.hpp"
 
 using std::string;
 

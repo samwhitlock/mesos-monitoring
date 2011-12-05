@@ -49,7 +49,7 @@ struct UsageReport {
 class ResourceMonitor
 {
 public:
-  ResourceMonitor(const ResourceCollector* collector);
+  ResourceMonitor(ResourceCollector* collector);
 
   virtual ~ResourceMonitor();
 
