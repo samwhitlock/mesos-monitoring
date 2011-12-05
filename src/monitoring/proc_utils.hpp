@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "common/try.hpp"
+
 namespace mesos {
 namespace internal {
 namespace monitoring {
@@ -39,10 +41,10 @@ struct ProcessStats {
 // Retrieves resource usage and metadata for a process. Takes the PID of the
 // process to query and returns a ProcessStats struct containing the retrieved
 // info.
-ProcessStats getProcessStats(const std::string& pid);
+Try<ProcessStats> getProcessStats(const std::string& pid);
 
 // Retrieves the system boot time (in milliseconds since epoch).
-double getBootTime();
+Try<double> getBootTime();
 
 // Retrieves the current system time (in milliseconds since epoch).
 double getCurrentTime();

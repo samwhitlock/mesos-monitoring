@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "common/utils.hpp"
+#include "common/try.hpp"
 #include "monitoring/proc_utils.hpp"
 
 using std::find;
@@ -41,7 +42,8 @@ void expectUInt(const string& str)
 void verifyStartTime(const double& startTime)
 {
   EXPECT_GT(startTime, 0.0);
-  EXPECT_GT(startTime, getBootTime());
+  // TODO(adegtiar): fix the use of Trys.
+  EXPECT_GT(startTime, getBootTime().get());
   EXPECT_LT(startTime, getCurrentTime());
 }
 
@@ -49,13 +51,15 @@ TEST(DISABLED_ProcUtilsTest, EnableOnLinuxOnly) {}
 
 TEST(ProcUtilsTest, BootTime)
 {
-  EXPECT_GT(getBootTime(), 0.0);
+  // TODO(adegtiar): fix the use of Trys.
+  EXPECT_GT(getBootTime().get(), 0.0);
 }
 
 TEST(ProcUtilsTest, CurrentTime)
 {
   EXPECT_GT(getCurrentTime(), 0.0);
-  EXPECT_GT(getCurrentTime(), getBootTime());
+  // TODO(adegtiar): fix the use of Trys.
+  EXPECT_GT(getCurrentTime(), getBootTime().get());
 }
 
 TEST(ProcUtilsTest, StartTime)
@@ -66,7 +70,9 @@ TEST(ProcUtilsTest, StartTime)
 
 TEST(ProcUtilsTest, ProcessStats)
 {
-  ProcessStats processStats = getProcessStats("self");
+  Try<ProcessStats> tryProcessStats = getProcessStats("self");
+  ASSERT_FALSE(tryProcessStats.isError());
+  ProcessStats processStats = tryProcessStats.get();
   expectUInt(processStats.pid);
   expectUInt(processStats.ppid);
   expectUInt(processStats.pgrp);
@@ -78,7 +84,9 @@ TEST(ProcUtilsTest, ProcessStats)
 
 TEST(ProcUtilsTest, GetAllPids)
 {
-  string mPid = getProcessStats("self").pid;
+  Try<ProcessStats> tryProcessStats = getProcessStats("self");
+  ASSERT_FALSE(tryProcessStats.isError());
+  string mPid = tryProcessStats.get().pid;
   vector<string> allPids = getAllPids();
   ASSERT_FALSE(allPids.empty());
   // Make sure the list contains the pid of the current process.

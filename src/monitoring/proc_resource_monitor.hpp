@@ -50,7 +50,7 @@ private:
 
   // Retrieve the info for all processes rooted at the process with the given
   // PID.
-  std::vector<ProcessStats> getProcessTreeStats();
+ Try<std::vector<ProcessStats> > getProcessTreeStats();
 
   // Aggregates the info all of the given ProcessStats and stores the result in
   // mem_total and cpu_total.

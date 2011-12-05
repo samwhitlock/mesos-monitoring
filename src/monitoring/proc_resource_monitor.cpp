@@ -20,8 +20,9 @@
 #include <string>
 #include <vector>
 
-#include "common/resources.hpp"
 #include "common/foreach.hpp"
+#include "common/resources.hpp"
+#include "common/try.hpp"
 
 #include "monitoring/proc_resource_monitor.hpp"
 #include "proc_utils.hpp"
@@ -50,7 +51,13 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
     initialized = true;
   }
   // Read the process stats.
-  vector<ProcessStats> process_tree = getProcessTreeStats();
+  Try<vector<ProcessStats> > try_process_tree = getProcessTreeStats();
+  if (try_process_tree.isError()) {
+    // TODO(adegtiar): handle the failed Try.
+    timestamp = -1;
+    return;
+  }
+  vector<ProcessStats> process_tree = try_process_tree.get();
   timestamp = getCurrentTime();
   // Sum up the resource usage stats.
   aggregateResourceUsage(process_tree, mem_usage, measured_cpu_usage_total);
@@ -63,22 +70,29 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
-vector<ProcessStats> ProcResourceMonitor::getProcessTreeStats()
+Try<vector<ProcessStats> > ProcResourceMonitor::getProcessTreeStats()
 {
   vector<ProcessStats> process_tree;
-  ProcessStats root_process = getProcessStats(root_pid);
+  Try<ProcessStats> tryRootStats = getProcessStats(root_pid);
+  if(tryRootStats.isError()) {
+    return Try<vector<ProcessStats> >::error(tryRootStats.error());
+  }
+  ProcessStats root_process = tryRootStats.get();
   vector<string> all_pids = getAllPids();
   // Attempt to add all process in the same tree by checking for:
   //   1) Direct child via match on ppid.
   //   2) Same process group as root.
   //   3) Same session as root.
   foreach (const string& pid, all_pids) {
-    ProcessStats next_process = getProcessStats(pid);
-    if (next_process.ppid == root_process.ppid ||
-        next_process.pgrp == root_process.pgrp ||
-        next_process.session == root_process.session) {
-      process_tree.push_back(next_process);
-    }
+    Try<ProcessStats> tryNextProcess = getProcessStats(pid);
+    if (tryNextProcess.isSome()) {
+      ProcessStats nextProcess = tryNextProcess.get();
+      if (nextProcess.ppid == root_process.ppid ||
+          nextProcess.pgrp == root_process.pgrp ||
+          nextProcess.session == root_process.session) {
+        process_tree.push_back(nextProcess);
+      }
+    } // else process must have died in between calls.
   }
   return process_tree;
 }
@@ -100,6 +114,7 @@ UsageReport ProcResourceMonitor::collectUsage()
 {
   double mem_usage, cpu_usage, timestamp, duration;
   collectUsage(mem_usage, cpu_usage, timestamp, duration);
+  // TODO(adegtiar): do something on failure?
   return generateUsageReport(mem_usage, cpu_usage, timestamp, duration);
 }
 
@@ -109,18 +124,20 @@ UsageReport ProcResourceMonitor::generateUsageReport(const double& mem_usage,
     const double& duration)
 {
   Resources resources;
-  // Set CPU usage resources.
-  Resource cpu_usage_r;
-  cpu_usage_r.set_type(Resource::SCALAR);
-  cpu_usage_r.set_name("cpu_usage");
-  cpu_usage_r.mutable_scalar()->set_value(cpu_usage);
-  resources += cpu_usage_r;
-  // Set CPU usage resources.
-  Resource mem_usage_r;
-  mem_usage_r.set_type(Resource::SCALAR);
-  mem_usage_r.set_name("mem_usage");
-  mem_usage_r.mutable_scalar()->set_value(mem_usage);
-  resources += mem_usage_r;
+  if (timestamp != -1) {
+    // Set CPU usage resources.
+    Resource cpu_usage_r;
+    cpu_usage_r.set_type(Resource::SCALAR);
+    cpu_usage_r.set_name("cpu_usage");
+    cpu_usage_r.mutable_scalar()->set_value(cpu_usage);
+    resources += cpu_usage_r;
+    // Set CPU usage resources.
+    Resource mem_usage_r;
+    mem_usage_r.set_type(Resource::SCALAR);
+    mem_usage_r.set_name("mem_usage");
+    mem_usage_r.mutable_scalar()->set_value(mem_usage);
+    resources += mem_usage_r;
+  }
   // Package into a UsageReport.
   return UsageReport(resources, timestamp, duration);
 }

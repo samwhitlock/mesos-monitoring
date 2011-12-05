@@ -26,12 +26,12 @@
 #include <vector>
 
 #include "common/foreach.hpp"
+#include "common/try.hpp"
 #include "common/utils.hpp"
 
 #include "proc_utils.hpp"
 
 using std::ifstream;
-using std::ios_base;
 using std::string;
 using std::stringstream;
 using std::vector;
@@ -40,12 +40,12 @@ namespace mesos {
 namespace internal {
 namespace monitoring {
 
-ProcessStats getProcessStats(const string& pid)
+Try<ProcessStats> getProcessStats(const string& pid)
 {
-  ProcessStats pinfo = {};
   string procPath = "/proc/" + pid + "/stat";
-  ifstream statStream(procPath.c_str(), ios_base::in);
+  ifstream statStream(procPath.c_str());
   if (statStream.is_open()) {
+    ProcessStats pinfo;
     // Dummy vars for leading entries in stat that we don't care about.
     string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
     string cutime, cstime, priority, nice, O, itrealvalue, vsize;
@@ -57,37 +57,30 @@ ProcessStats getProcessStats(const string& pid)
                 >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
                 >> cstime >> priority >> nice >> O >> itrealvalue
                 >> pinfo.startTime >> vsize >> rss;
-    statStream.close();
     pinfo.memUsage = rss * sysconf(_SC_PAGE_SIZE);
     pinfo.cpuTime = utime + stime;
+    return pinfo;
   } else {
-    LOG(ERROR) << "Cannot open " << procPath << " to get stats";
+    return Try<ProcessStats>::error("Cannot open " + procPath + " for stats");
   }
-  return pinfo;
 }
 
-double getBootTime()
+Try<double> getBootTime()
 {
   string line;
-  long bootTime = 0;
   ifstream statFile("/proc/stat");
   if (statFile.is_open()) {
     while (statFile.good()) {
       getline (statFile, line);
       if (line.compare(0, 6, "btime ") == 0) {
-        stringstream bootTimeString(line.substr(6));
-        bootTimeString >> bootTime;
-        break;
+        Try<double> bootTime = utils::numify<double>(line.substr(6));
+        if (bootTime.isSome()) {
+          return bootTime.get() * 1000.0;
+        }
       }
     }
-    if (bootTime == 0) {
-      LOG(ERROR) << "Unable to read boot time from proc";
-    }
-    statFile.close();
-  } else {
-    LOG(ERROR) << "Unable to open stat file";
   }
-  return bootTime * 1000.0;
+  return Try<double>::error("unable to read boot time from proc");
 }
 
 double getCurrentTime()
@@ -99,13 +92,15 @@ double getCurrentTime()
 
 double getStartTime(const string& pid)
 {
-  bootJiffiesToMillis(getProcessStats(pid).startTime);
+  // TODO(adegtiar): make this a try.
+  bootJiffiesToMillis(getProcessStats(pid).get().startTime);
 }
 
 double bootJiffiesToMillis(double jiffies)
 {
   double startTimeAfterBoot = jiffies * 1000.0 / HZ;
-  return getBootTime() + startTimeAfterBoot;
+  // TODO(adegtiar): make this a try.
+  return getBootTime().get() + startTimeAfterBoot;
 }
 
 vector<string> getAllPids() {
