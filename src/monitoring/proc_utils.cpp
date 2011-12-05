@@ -100,15 +100,19 @@ double getCurrentTime()
 
 double getStartTime(const string& pid)
 {
-  ProcessStats root_stats = getProcessStats(pid);
-  double starttime_after_boot = root_stats.starttime * 1000.0 / HZ;
+  bootJiffiesToMillis(getProcessStats(pid).starttime);
+}
+
+double bootJiffiesToMillis(double jiffies)
+{
+  double starttime_after_boot = jiffies * 1000.0 / HZ;
   return getBootTime() + starttime_after_boot;
 }
 
 vector<string> getAllPids() {
   vector<string> pids = vector<string>();
   foreach (const string& filename, utils::os::listdir("/proc")) {
-    if (filename.find_first_not_of("0123456789") == string::npos) {
+    if (utils::numify<uint64_t>(filename).isSome()) {
       pids.push_back(filename);
     }
   }

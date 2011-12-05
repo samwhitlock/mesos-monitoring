@@ -51,8 +51,19 @@ double getCurrentTime();
 // the given PID.
 double getStartTime(const std::string& pid);
 
+// Converts time in jiffies since system boot to milliseconds since epoch.
+double bootJiffiesToMillis(double jiffies);
+
+// Converts system ticks (as defined by _SC_CLK_TCK, NOT CPU clock ticks)
+// to milliseconds.
+inline double ticksToMillis(double ticks)
+{
+  return ticks * 1000.0 / sysconf(_SC_CLK_TCK);
+}
+
 // Reads from proc and returns a vector of all processes running on the system.
 std::vector<std::string> getAllPids();
+
 
 } // namespace monitoring {
 } // namespace internal {

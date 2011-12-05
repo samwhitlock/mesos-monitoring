@@ -54,7 +54,7 @@ void ProcResourceMonitor::collectUsage(double& mem_usage,
   timestamp = getCurrentTime();
   // Sum up the resource usage stats.
   aggregateResourceUsage(process_tree, mem_usage, measured_cpu_usage_total);
-  measured_cpu_usage_total *= 1000.0 / sysconf(_SC_CLK_TCK);
+  measured_cpu_usage_total = ticksToMillis(measured_cpu_usage_total);
   duration = timestamp - prev_timestamp;
   cpu_usage = measured_cpu_usage_total - prev_cpu_usage;
   // Update the previous usage stats.
