@@ -45,6 +45,8 @@ void verifyStartTime(const double& startTime)
   EXPECT_LT(startTime, getCurrentTime());
 }
 
+TEST(DISABLED_ProcUtilsTest, EnableOnLinuxOnly) {}
+
 TEST(ProcUtilsTest, BootTime)
 {
   EXPECT_GT(getBootTime(), 0.0);
@@ -69,9 +71,9 @@ TEST(ProcUtilsTest, ProcessStats)
   expectUInt(processStats.ppid);
   expectUInt(processStats.pgrp);
   expectUInt(processStats.session);
-  verifyStartTime(bootJiffiesToMillis(processStats.starttime));
-  EXPECT_GT(processStats.cpu_time, 0.0);
-  EXPECT_GT(processStats.mem_usage, 0.0);
+  verifyStartTime(bootJiffiesToMillis(processStats.startTime));
+  EXPECT_GT(processStats.cpuTime, 0.0);
+  EXPECT_GT(processStats.memUsage, 0.0);
 }
 
 TEST(ProcUtilsTest, GetAllPids)

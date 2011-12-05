@@ -91,8 +91,8 @@ void ProcResourceMonitor::aggregateResourceUsage(
   mem_total = 0;
   cpu_total = 0;
   foreach (const ProcessStats& pinfo, processes) {
-    mem_total += pinfo.mem_usage;
-    cpu_total += pinfo.cpu_time;
+    mem_total += pinfo.memUsage;
+    cpu_total += pinfo.cpuTime;
   }
 }
 

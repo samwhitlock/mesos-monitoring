@@ -31,9 +31,9 @@ struct ProcessStats {
   std::string ppid;
   std::string pgrp;
   std::string session;
-  double cpu_time;  // utime + stime in ticks.
-  double starttime; // jiffies since system boot time.
-  double mem_usage; // rss in bytes.
+  double cpuTime;  // utime + stime in ticks.
+  double startTime; // jiffies since system boot time.
+  double memUsage; // rss in bytes.
 };
 
 // Retrieves resource usage and metadata for a process. Takes the PID of the

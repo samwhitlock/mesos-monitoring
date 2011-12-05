@@ -43,26 +43,25 @@ namespace monitoring {
 ProcessStats getProcessStats(const string& pid)
 {
   ProcessStats pinfo = {};
-  string proc_path = "/proc/" + pid + "/stat";
-  ifstream stat_stream(proc_path.c_str(), ios_base::in);
-  if (stat_stream.is_open()) {
+  string procPath = "/proc/" + pid + "/stat";
+  ifstream statStream(procPath.c_str(), ios_base::in);
+  if (statStream.is_open()) {
     // Dummy vars for leading entries in stat that we don't care about.
     string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
-    string cutime, cstime, priority, nice, O, itrealvalue, starttime, vsize;
+    string cutime, cstime, priority, nice, O, itrealvalue, vsize;
     // These are the fields we want.
-    long rss;
-    long utime, stime;
+    long rss, utime, stime;
     // Parse all fields from stat.
-    stat_stream >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
+    statStream >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
                 >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
                 >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
                 >> cstime >> priority >> nice >> O >> itrealvalue
-                >> pinfo.starttime >> vsize >> rss;
-    stat_stream.close();
-    pinfo.mem_usage = rss * sysconf(_SC_PAGE_SIZE);
-    pinfo.cpu_time = utime + stime;
+                >> pinfo.startTime >> vsize >> rss;
+    statStream.close();
+    pinfo.memUsage = rss * sysconf(_SC_PAGE_SIZE);
+    pinfo.cpuTime = utime + stime;
   } else {
-    LOG(ERROR) << "Cannot open " << proc_path << " to get stats";
+    LOG(ERROR) << "Cannot open " << procPath << " to get stats";
   }
   return pinfo;
 }
@@ -70,25 +69,25 @@ ProcessStats getProcessStats(const string& pid)
 double getBootTime()
 {
   string line;
-  long btime = 0;
-  ifstream stat_file("/proc/stat");
-  if (stat_file.is_open()) {
-    while (stat_file.good()) {
-      getline (stat_file,line);
+  long bootTime = 0;
+  ifstream statFile("/proc/stat");
+  if (statFile.is_open()) {
+    while (statFile.good()) {
+      getline (statFile, line);
       if (line.compare(0, 6, "btime ") == 0) {
-        stringstream btime_str(line.substr(6));
-        btime_str >> btime;
+        stringstream bootTimeString(line.substr(6));
+        bootTimeString >> bootTime;
         break;
       }
     }
-    if (btime == 0) {
+    if (bootTime == 0) {
       LOG(ERROR) << "Unable to read boot time from proc";
     }
-    stat_file.close();
+    statFile.close();
   } else {
     LOG(ERROR) << "Unable to open stat file";
   }
-  return btime * 1000.0;
+  return bootTime * 1000.0;
 }
 
 double getCurrentTime()
@@ -100,13 +99,13 @@ double getCurrentTime()
 
 double getStartTime(const string& pid)
 {
-  bootJiffiesToMillis(getProcessStats(pid).starttime);
+  bootJiffiesToMillis(getProcessStats(pid).startTime);
 }
 
 double bootJiffiesToMillis(double jiffies)
 {
-  double starttime_after_boot = jiffies * 1000.0 / HZ;
-  return getBootTime() + starttime_after_boot;
+  double startTimeAfterBoot = jiffies * 1000.0 / HZ;
+  return getBootTime() + startTimeAfterBoot;
 }
 
 vector<string> getAllPids() {
