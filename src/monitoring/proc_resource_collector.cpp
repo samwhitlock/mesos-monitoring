@@ -24,7 +24,7 @@
 #include "common/resources.hpp"
 #include "common/try.hpp"
 
-#include "monitoring/proc_resource_monitor.hpp"
+#include "monitoring/proc_resource_collector.hpp"
 #include "proc_utils.hpp"
 
 using std::ios_base;
@@ -33,12 +33,20 @@ using std::vector;
 
 namespace mesos { namespace internal { namespace monitoring {
 
-ProcResourceMonitor::ProcResourceMonitor(const string& _root_pid)
+ProcResourceCollector::ProcResourceCollector(const string& _root_pid)
   : root_pid(_root_pid), initialized(false) {}
 
-ProcResourceMonitor::~ProcResourceMonitor() {}
+ProcResourceCollector::~ProcResourceCollector() {}
 
-void ProcResourceMonitor::collectUsage(double& mem_usage,
+double ProcResourceCollector::getMemoryUsage()
+{
+}
+
+Rate ProcResourceCollector::getCpuUsage()
+{
+}
+
+void ProcResourceCollector::collectUsage(double& mem_usage,
     double& cpu_usage,
     double& timestamp,
     double& duration)
@@ -97,7 +105,7 @@ Try<vector<ProcessStats> > ProcResourceMonitor::getProcessTreeStats()
   return process_tree;
 }
 
-void ProcResourceMonitor::aggregateResourceUsage(
+void ProcResourceCollector::aggregateResourceUsage(
     const vector<ProcessStats>& processes,
     double& mem_total,
     double& cpu_total)
@@ -143,3 +151,4 @@ UsageReport ProcResourceMonitor::generateUsageReport(const double& mem_usage,
 }
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
+

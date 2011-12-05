@@ -16,40 +16,39 @@
  * limitations under the License.
  */
 
-#ifndef __LXC_RESOURCE_MONITOR_HPP__
-#define __LXC_RESOURCE_MONITOR_HPP__
+#ifndef __LXC_RESOURCE_COLLECTOR_HPP__
+#define __LXC_RESOURCE_COLLECTOR_HPP__
 
 #include <string>
-#include <iostream>
 
-#include "monitoring/resource_monitor.hpp"
+#include "resource_collector.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
-class LxcResourceMonitor : public ResourceMonitor
+class LxcResourceCollector : public ResourceCollector
 {
-  public:
-    LxcResourceMonitor(const std::string& containerName);
+public:
+  LxcResourceCollector(const std::string& _containerName);
+  virtual ~LxcResourceCollector();
 
-    virtual ~LxcResourceMonitor();
+  virtual double getMemoryUsage();
+  virtual Rate getCpuUsage();
 
-    virtual UsageReport collectUsage();
-  protected:
-    std::string containerName;
+protected:
+  const std::string containerName;
+  double previousTimestamp;//FIXME(sam): having the 'uninitialized' value of -1.0 is a little hacky
+  double previousCpuTicks;
 
-    double previousTimestamp;
-    double previousCpuTicks;
+  double getControlGroupDoubleValue(const std::string& property) const;
 
-    double getControlGroupDoubleValue(const std::string& property) const;
+  bool getControlGroupValue(std::iostream* ios, const std::string& property) const;
 
-    bool getControlGroupValue(std::iostream* ios, const std::string& property) const;
-
-    // gets the approximate start time for the container
-    // used initial call of collectUsage when no previous data is available
-    double getContainerStartTime() const;
+  // gets the approximate start time for the container
+  // used initial call of collectUsage when no previous data is available
+  double getContainerStartTime() const;
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 
-#endif // __LXC_RESOURCE_MONITOR_HPP__
+#endif // __LXC_RESOURCE_COLLECTOR_HPP__
 

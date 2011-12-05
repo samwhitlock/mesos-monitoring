@@ -19,22 +19,23 @@
 #include <string>
 
 #if defined(__linux__) || defined(__sun__)
-#include "monitoring/proc_resource_monitor.hpp"
+#include "monitoring/proc_resource_collector.hpp"
 #endif
 
-#include "monitoring/resource_monitor.hpp"
+#include "monitoring/process_resource_collector.hpp"
 
 using std::string;
 
 namespace mesos { namespace internal { namespace monitoring {
 
-ProcessResourceMonitor* ProcessResourceMonitor::create(const string& root_pid)
+ProcessResourceCollector* ProcessResourceCollector::create(const string& root_pid)
 {
 #if defined(__linux__) || defined(__sun__)
-  return new ProcResourceMonitor(root_pid);
+  return new ProcResourceCollector(root_pid);
 #else
   return NULL;
 #endif
 }
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
+

@@ -19,7 +19,7 @@
 #include <sys/time.h>
 #include <vector>
 
-#include "lxc_resource_monitor.hpp"
+#include "lxc_resource_collector.hpp"
 
 #include "monitoring/proc_utils.hpp"
 
@@ -29,12 +29,19 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
-LxcResourceMonitor::LxcResourceMonitor(const std::string& _containerName)
-  : previousTimestamp(-1.0), previousCpuTicks(0.0), containerName(_containerName) {}
+LxcResourceCollector::LxcResourceCollector(const std::string& _containerName)
+  : containerName(_containerName), previousTimestamp(-1.0), previousCpuTicks(0.0)
+{
+}
 
-LxcResourceMonitor::~LxcResourceMonitor() {}
+LxcResourceCollector::~LxcResourceCollector() {}
 
-UsageReport LxcResourceMonitor::collectUsage()
+double LxcResourceCollector::getMemoryUsage()
+{
+  return getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
+}
+
+Rate LxcResourceCollector::getCpuUsage()
 {
   if (previousTimestamp == -1.0) {
     previousTimestamp = getContainerStartTime();
@@ -50,34 +57,16 @@ UsageReport LxcResourceMonitor::collectUsage()
   double elapsedTime = asMillisecs - previousTimestamp;
   previousTimestamp = asMillisecs;
 
-  double memoryInBytes = getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
-
-  LOG(INFO) << "Memory usage in bytes: " << memoryInBytes << ", cpu usage: " << elapsedTicks << ", over time: " << elapsedTime;
-
-  Resource memory;
-  memory.set_type(Resource::SCALAR);
-  memory.set_name("mem_usage");
-  memory.mutable_scalar()->set_value(memoryInBytes);
-
-  Resource cpu;
-  cpu.set_type(Resource::SCALAR);
-  cpu.set_name("cpu_usage");
-  cpu.mutable_scalar()->set_value(elapsedTicks);
-
-  Resources resources;
-  resources += cpu;
-  resources += memory;
-
-  return UsageReport(resources, asMillisecs, elapsedTime);
+  return Rate(elapsedTime, elapsedTicks);
 }
 
-bool LxcResourceMonitor::getControlGroupValue(
+bool LxcResourceCollector::getControlGroupValue(
     std::iostream* ios, const std::string& property) const
 {
   Try<int> status =
     utils::os::shell(ios, "lxc-cgroup -n %s %s",
                      containerName.c_str(), property.c_str());
-  
+
   if (status.isError()) {
     LOG(ERROR) << "Failed to get " << property
                << " for container " << containerName
@@ -93,8 +82,7 @@ bool LxcResourceMonitor::getControlGroupValue(
   return true;
 }
 
-double LxcResourceMonitor::getControlGroupDoubleValue(
-    const std::string& property) const
+double LxcResourceCollector::getControlGroupDoubleValue(const std::string& property) const
 {
   std::stringstream ss;
 
@@ -104,10 +92,10 @@ double LxcResourceMonitor::getControlGroupDoubleValue(
   return d;
 }
 
-double LxcResourceMonitor::getContainerStartTime() const
+double LxcResourceCollector::getContainerStartTime() const
 {
   using namespace std;
-  vector<string> allPids = getAllPids();//TODO maybe sort this?
+  vector<string> allPids = getAllPids();//TODO does this need to be sorted?
 
   return getStartTime(allPids.front());
 }
