@@ -25,7 +25,7 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
-class LxcResourceResourceCollector : public ResourceResourceCollector
+class LxcResourceCollector : public ResourceCollector
 {
 public:
   LxcResourceCollector(const std::string& _containerName);

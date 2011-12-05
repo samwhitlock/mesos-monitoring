@@ -28,7 +28,7 @@
 #include "common/type_utils.hpp"
 #include "common/utils.hpp"
 #include "common/process_utils.hpp"
-#include "monitoring/process_resource_monitor.hpp"
+#include "monitoring/process_resource_collector.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
@@ -120,7 +120,10 @@ void ProcessBasedIsolationModule::launchExecutor(
     infos[frameworkId][executorId]->pid = pid;
 
     // Start up the resource monitor.
-    info->resourceMonitor = ProcessResourceMonitor::create(stringify(pid));
+    ProcessResourceCollector* prc = ProcessResourceCollector::create(stringify(pid));
+    if (prc != NULL) {
+      info->resourceMonitor = new ResourceMonitor(prc);
+    }
 
     // Tell the slave this executor has started.
     dispatch(slave, &Slave::executorStarted,
