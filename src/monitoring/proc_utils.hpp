@@ -20,7 +20,7 @@
 #define __PROC_UTILS_HPP__
 
 #include <string>
-#include <vector>
+#include <list>
 
 #include "common/try.hpp"
 
@@ -53,9 +53,9 @@ double getCurrentTime();
 // with the given PID.
 Try<double> getStartTime(const std::string& pid);
 
-// Reads from proc and returns a vector of all processes running on the
+// Reads from proc and returns a list of all processes running on the
 // system.
-Try<std::vector<std::string> > getAllPids();
+Try<std::list<std::string> > getAllPids();
 
 } // namespace monitoring {
 } // namespace internal {

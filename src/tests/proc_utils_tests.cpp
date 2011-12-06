@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <string>
-#include <vector>
+#include <list>
 
 #include "common/utils.hpp"
 #include "common/try.hpp"
@@ -27,7 +27,7 @@
 
 using std::find;
 using std::string;
-using std::vector;
+using std::list;
 
 namespace mesos {
 namespace internal {
@@ -92,9 +92,9 @@ TEST(ProcUtilsTest, GetAllPids)
   ASSERT_FALSE(tryProcessStats.isError());
   string mPid = tryProcessStats.get().pid;
 
-  Try<vector<string> > allPidsTry = getAllPids();
+  Try<list<string> > allPidsTry = getAllPids();
   ASSERT_FALSE(allPidsTry.isError());
-  vector<string> allPids = allPidsTry.get();
+  list<string> allPids = allPidsTry.get();
   ASSERT_FALSE(allPids.empty());
   // Make sure the list contains the pid of the current process.
   EXPECT_NE(find(allPids.begin(), allPids.end(), mPid), allPids.end());

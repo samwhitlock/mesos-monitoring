@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
+#include <list>
 #include <sys/time.h>
-#include <vector>
 
 #include "lxc_resource_collector.hpp"
 
@@ -106,7 +106,7 @@ Try<double> LxcResourceCollector::getControlGroupDoubleValue(const std::string& 
 Try<double> LxcResourceCollector::getContainerStartTime() const
 {
   using namespace std;
-  Try<vector<string> > allPidsTry = getAllPids();
+  Try<list<string> > allPidsTry = getAllPids();
   if (allPidsTry.isError()) {
     return Try<double>::error(allPidsTry.error());
   }

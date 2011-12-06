@@ -20,11 +20,11 @@
 #include <fstream>
 #include <glog/logging.h>
 #include <iostream>
+#include <list>
 #include <pthread.h>
 #include <sstream>
 #include <string>
 #include <sys/time.h>
-#include <vector>
 
 #include "common/foreach.hpp"
 #include "common/try.hpp"
@@ -34,7 +34,7 @@
 using std::ifstream;
 using std::string;
 using std::stringstream;
-using std::vector;
+using std::list;
 
 namespace mesos {
 namespace internal {
@@ -128,15 +128,15 @@ Try<double> getStartTime(const string& pid)
   }
 }
 
-Try<vector<string> > getAllPids() {
-  vector<string> pids = vector<string>();
+Try<list<string> > getAllPids() {
+  list<string> pids = list<string>();
   foreach (const string& filename, utils::os::listdir("/proc")) {
     if (utils::numify<uint64_t>(filename).isSome()) {
       pids.push_back(filename);
     }
   }
   if (pids.empty()) {
-    return Try<vector<string> >::error("Failed to get all pids from proc");
+    return Try<list<string> >::error("Failed to get all pids from proc");
   } else {
     return pids;
   }

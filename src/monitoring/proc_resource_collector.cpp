@@ -18,8 +18,8 @@
 
 #include <assert.h>
 #include <iostream>
+#include <list>
 #include <string>
-#include <vector>
 
 #include "common/foreach.hpp"
 #include "common/resources.hpp"
@@ -29,7 +29,7 @@
 
 using std::ios_base;
 using std::string;
-using std::vector;
+using std::list;
 
 namespace mesos {
 namespace internal {
@@ -76,14 +76,14 @@ void ProcResourceCollector::collectUsage()
   updatePreviousUsage();
 
   // Read the process stats.
-  Try<vector<ProcessStats> > tryProcessTree = getProcessTreeStats();
+  Try<list<ProcessStats> > tryProcessTree = getProcessTreeStats();
   if (tryProcessTree.isError()) {
     currentMemUsage = Try<double>::error(tryProcessTree.error());
     currentCpuUsage = Try<double>::error(tryProcessTree.error());
     currentTimestamp = Try<double>::error(tryProcessTree.error());
     return;
   }
-  vector<ProcessStats> processTree = tryProcessTree.get();
+  list<ProcessStats> processTree = tryProcessTree.get();
 
   // Success, so roll over previous usage.
   prevTimestamp = currentTimestamp;
@@ -111,19 +111,19 @@ void ProcResourceCollector::updatePreviousUsage()
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
-Try<vector<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
+Try<list<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
 {
-  vector<ProcessStats> processTree;
+  list<ProcessStats> processTree;
   Try<ProcessStats> tryRootStats = getProcessStats(rootPid);
   if (tryRootStats.isError()) {
-    return Try<vector<ProcessStats> >::error(tryRootStats.error());
+    return Try<list<ProcessStats> >::error(tryRootStats.error());
   }
   ProcessStats rootProcess = tryRootStats.get();
-  Try<vector<string> > allPidsTry = getAllPids();
+  Try<list<string> > allPidsTry = getAllPids();
   if (allPidsTry.isError()) {
-    return Try<vector<ProcessStats> >::error(allPidsTry.error());
+    return Try<list<ProcessStats> >::error(allPidsTry.error());
   }
-  vector<string> allPids = allPidsTry.get();
+  list<string> allPids = allPidsTry.get();
   // Attempt to add all process in the same tree by checking for:
   //   1) Direct child via match on ppid.
   //   2) Same process group as root.
@@ -143,7 +143,7 @@ Try<vector<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
 }
 
 void ProcResourceCollector::aggregateResourceUsage(
-    const vector<ProcessStats>& processes,
+    const list<ProcessStats>& processes,
     double& memTotal,
     double& cpuTotal)
 {
