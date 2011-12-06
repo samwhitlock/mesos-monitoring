@@ -51,6 +51,10 @@ class ResourceCollector
 public:
   virtual ~ResourceCollector() {}
 
+  // Called before usage is retrieved from the ResourceCollector.
+  // Override this to collect usage in one batch.
+  virtual void collectUsage() = 0;
+
   // Returns the number of bytes currently used by the monitored system.
   virtual Try<double> getMemoryUsage() = 0;
 

@@ -41,6 +41,7 @@ Try<UsageReport> ResourceMonitor::collectUsage()
   double now = getCurrentTime();
   double duration = 0;
 
+  collector->collectUsage();
   // TODO(adegtiar or sam): consider making this more general to
   // avoid code duplication and make it more flexible, e.g.
   // foreach usageType in ["mem_usage", "cpu_usage", ...]
