@@ -66,13 +66,6 @@ private:
     double& cpu_usage,
     double& timestamp,
     double& duration);
-
-//  // Packages the given arguments into a UsageReport.
-//  UsageReport generateUsageReport(const double& mem_usage,
-//      const double& cpu_usage,
-//      const double& timestamp,
-//      const double& duration);
-
 };
 
 }}} // namespace mesos { namespace internal { namespace monitoring {

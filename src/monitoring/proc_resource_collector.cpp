@@ -78,7 +78,7 @@ void ProcResourceCollector::collectUsage(double& mem_usage,
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
-Try<vector<ProcessStats> > ProcResourceMonitor::getProcessTreeStats()
+Try<vector<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
 {
   vector<ProcessStats> process_tree;
   Try<ProcessStats> tryRootStats = getProcessStats(root_pid);
@@ -116,38 +116,6 @@ void ProcResourceCollector::aggregateResourceUsage(
     mem_total += pinfo.memUsage;
     cpu_total += pinfo.cpuTime;
   }
-}
-
-UsageReport ProcResourceMonitor::collectUsage()
-{
-  double mem_usage, cpu_usage, timestamp, duration;
-  collectUsage(mem_usage, cpu_usage, timestamp, duration);
-  // TODO(adegtiar): do something on failure?
-  return generateUsageReport(mem_usage, cpu_usage, timestamp, duration);
-}
-
-UsageReport ProcResourceMonitor::generateUsageReport(const double& mem_usage,
-    const double& cpu_usage,
-    const double& timestamp,
-    const double& duration)
-{
-  Resources resources;
-  if (timestamp != -1) {
-    // Set CPU usage resources.
-    Resource cpu_usage_r;
-    cpu_usage_r.set_type(Resource::SCALAR);
-    cpu_usage_r.set_name("cpu_usage");
-    cpu_usage_r.mutable_scalar()->set_value(cpu_usage);
-    resources += cpu_usage_r;
-    // Set CPU usage resources.
-    Resource mem_usage_r;
-    mem_usage_r.set_type(Resource::SCALAR);
-    mem_usage_r.set_name("mem_usage");
-    mem_usage_r.mutable_scalar()->set_value(mem_usage);
-    resources += mem_usage_r;
-  }
-  // Package into a UsageReport.
-  return UsageReport(resources, timestamp, duration);
 }
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
