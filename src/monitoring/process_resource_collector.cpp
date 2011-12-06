@@ -32,7 +32,7 @@ namespace monitoring {
 
 ProcessResourceCollector* ProcessResourceCollector::create(const string& root_pid)
 {
-#if defined(__linux__) || defined(__sun__)
+#ifdef __linux__
   return new ProcResourceCollector(root_pid);
 #else
   return NULL;
