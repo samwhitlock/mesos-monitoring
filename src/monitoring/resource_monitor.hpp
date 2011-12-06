@@ -19,8 +19,8 @@
 #ifndef __RESOURCE_MONITOR_HPP__
 #define __RESOURCE_MONITOR_HPP__
 
-#include "resource_collector.hpp"
 #include "common/resources.hpp"
+#include "resource_collector.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 

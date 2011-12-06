@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-#include "resource_monitor.hpp"
+#include <glog/logging.h>
 
 #include "proc_utils.hpp"
+#include "resource_monitor.hpp"
 
 namespace mesos { namespace internal { namespace monitoring {
 
@@ -34,26 +35,40 @@ ResourceMonitor::~ResourceMonitor()
 // for use in creating a UsageMessage
 Try<UsageReport> ResourceMonitor::collectUsage()
 {
-  //TODO(sam) refactor to use trys
-  double now = getCurrentTime();
-
-  Resource memory;
-  memory.set_type(Resource::SCALAR);
-  memory.set_name("mem_usage");
-  memory.mutable_scalar()->set_value(collector->getMemoryUsage());
-
-  Rate cpuUsage = collector->getCpuUsage();
-
-  Resource cpu;
-  cpu.set_type(Resource::SCALAR);
-  cpu.set_name("cpu_usage");
-  cpu.mutable_scalar()->set_value(cpuUsage.difference);
-
   Resources resources;
-  resources += cpu;
-  resources += memory;
+  double now = getCurrentTime();
+  double duration = 0;
 
-  return UsageReport(resources, now, cpuUsage.duration);
+  // TODO(adegtiar or sam): consider making this more general to
+  // avoid code duplication and make it more flexible, e.g.
+  // foreach usageType in ["mem_usage", "cpu_usage", ...]
+  //   collector->getUsage(usageType); (+ Try stuff, etc)
+  Try<double> memUsage = collector->getMemoryUsage();
+  if (memUsage.isSome()) {
+    Resource memory;
+    memory.set_type(Resource::SCALAR);
+    memory.set_name("mem_usage");
+    memory.mutable_scalar()->set_value(memUsage.get());
+    resources += memory;
+  } else {
+    return Try<UsageReport>::error(memUsage.error());
+  }
+
+  Try<Rate> cpuUsage = collector->getCpuUsage();
+  if (cpuUsage.isSome()) {
+    Resource cpu;
+    cpu.set_type(Resource::SCALAR);
+    cpu.set_name("cpu_usage");
+    cpu.mutable_scalar()->set_value(cpuUsage.get().difference);
+    duration = cpuUsage.get().duration;
+    resources += cpu;
+  } else {
+    return Try<UsageReport>::error(cpuUsage.error());
+  }
+  // TODO(adegtiar or sam): Consider returning partial usage reports.
+  // For now if one fails, the other will almost certainly fail, and
+  // so may not be worthwhile. This could change.
+  return UsageReport(resources, now, duration);
 }
 
 }}} // namespace mesos { namespace internal { namespace monitoring {

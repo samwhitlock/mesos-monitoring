@@ -52,7 +52,7 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
   Try<double> cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
 
   if (cpuTicks.isError()) {
-    return Try::error("unable to read cpuacct.usage from lxc");
+    return Try<Rate>::error("unable to read cpuacct.usage from lxc");
   }
 
   double ticks = cpuTicks.get();
@@ -62,7 +62,7 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
   double elapsedTime = asMillisecs - previousTimestamp;
   previousTimestamp = asMillisecs;
 
-  return Try(Rate(elapsedTime, elapsedTicks));
+  return Rate(elapsedTime, elapsedTicks);
 }
 
 bool LxcResourceCollector::getControlGroupValue(
@@ -94,9 +94,9 @@ Try<double> LxcResourceCollector::getControlGroupDoubleValue(const std::string& 
   if (getControlGroupValue(&ss, property)) {
     double d;
     ss >> d;
-    return Try(d);
+    return d;
   } else {
-    return Try::error("unable to read control group double value");
+    return Try<double>::error("unable to read control group double value");
   }
 }
 

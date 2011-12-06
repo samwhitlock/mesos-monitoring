@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "common/try.hpp"
 #include "monitoring/resource_collector.hpp"
 #include "monitoring/resource_monitor.hpp"
 
@@ -27,28 +28,31 @@
  */ 
 
 using namespace mesos::internal::monitoring;
+using ::testing::Return;
 
 class MockCollector : public ResourceCollector
 {
 public:
-  MOCK_METHOD0(getMemoryUsage, double());
-  MOCK_METHOD0(getCpuUsage, Rate());
+  // TODO(sam): Fix/confirm change.
+  MOCK_METHOD0(getMemoryUsage, Try<double>());
+  MOCK_METHOD0(getCpuUsage, Try<Rate>());
 };
 
 TEST(ResourceMonitorTest, MonitorsCorrectly)
 {
   MockCollector mc;
 
-  //TODO(sam) put call requirements here!
+  // TODO(sam) put call requirements here!
   EXPECT_CALL(mc, getMemoryUsage())
     .Times(1)
-    .WillOnce(Return(123456789.0));
+    .WillOnce(Return(Try<double>::some(123456789.0)));
 
   EXPECT_CALL(mc, getCpuUsage())
     .Times(1)
-    .WillOnce(Return(Rate(13579.0,2468.0)));
+    .WillOnce(Return(Try<Rate>::some(Rate(13579.0,2468.0))));
 
-  ResourceMonitor rm(&mc);
+  // TODO(sam): This can't be constructed as is. Results in heap errors.
+//  ResourceMonitor rm(&mc);
 
   //TODO(sam) do some calls on rm and check out what you get
 }
