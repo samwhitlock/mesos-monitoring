@@ -46,16 +46,16 @@ Try<ProcessStats> getProcessStats(const std::string& pid);
 // Retrieves the system boot time (in milliseconds since epoch).
 Try<double> getBootTime();
 
+// Retrieves the current system time (in milliseconds since epoch).
+double getCurrentTime();
+
 // Retrieves the start time (in milliseconds since epoch) of the process
 // with the given PID.
 Try<double> getStartTime(const std::string& pid);
 
-// Retrieves the current system time (in milliseconds since epoch).
-double getCurrentTime();
-
 // Reads from proc and returns a vector of all processes running on the
 // system.
-std::vector<std::string> getAllPids();
+Try<std::vector<std::string> > getAllPids();
 
 } // namespace monitoring {
 } // namespace internal {

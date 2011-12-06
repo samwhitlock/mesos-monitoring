@@ -106,9 +106,12 @@ Try<double> LxcResourceCollector::getControlGroupDoubleValue(const std::string& 
 Try<double> LxcResourceCollector::getContainerStartTime() const
 {
   using namespace std;
-  vector<string> allPids = getAllPids();//TODO does this need to be sorted?
-
-  return getStartTime(allPids.front());
+  Try<vector<string> > allPidsTry = getAllPids();
+  if (allPidsTry.isError()) {
+    return Try<double>::error(allPidsTry.error());
+  }
+  // TODO does this need to be sorted?
+  return getStartTime(allPidsTry.get().front());
 }
 
 } // namespace monitoring {

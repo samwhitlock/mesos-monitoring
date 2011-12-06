@@ -119,7 +119,11 @@ Try<vector<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
     return Try<vector<ProcessStats> >::error(tryRootStats.error());
   }
   ProcessStats rootProcess = tryRootStats.get();
-  vector<string> allPids = getAllPids();
+  Try<vector<string> > allPidsTry = getAllPids();
+  if (allPidsTry.isError()) {
+    return Try<vector<ProcessStats> >::error(allPidsTry.error());
+  }
+  vector<string> allPids = allPidsTry.get();
   // Attempt to add all process in the same tree by checking for:
   //   1) Direct child via match on ppid.
   //   2) Same process group as root.

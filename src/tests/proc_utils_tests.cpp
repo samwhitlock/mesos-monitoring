@@ -91,7 +91,10 @@ TEST(ProcUtilsTest, GetAllPids)
   Try<ProcessStats> tryProcessStats = getProcessStats("self");
   ASSERT_FALSE(tryProcessStats.isError());
   string mPid = tryProcessStats.get().pid;
-  vector<string> allPids = getAllPids();
+
+  Try<vector<string> > allPidsTry = getAllPids();
+  ASSERT_FALSE(allPidsTry.isError());
+  vector<string> allPids = allPidsTry.get();
   ASSERT_FALSE(allPids.empty());
   // Make sure the list contains the pid of the current process.
   EXPECT_NE(find(allPids.begin(), allPids.end(), mPid), allPids.end());

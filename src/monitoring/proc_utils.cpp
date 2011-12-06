@@ -128,14 +128,18 @@ Try<double> getStartTime(const string& pid)
   }
 }
 
-vector<string> getAllPids() {
+Try<vector<string> > getAllPids() {
   vector<string> pids = vector<string>();
   foreach (const string& filename, utils::os::listdir("/proc")) {
     if (utils::numify<uint64_t>(filename).isSome()) {
       pids.push_back(filename);
     }
   }
-  return pids;
+  if (pids.empty()) {
+    return Try<vector<string> >::error("Failed to get all pids from proc");
+  } else {
+    return pids;
+  }
 }
 
 } // namespace monitoring {
