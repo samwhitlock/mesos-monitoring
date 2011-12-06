@@ -57,7 +57,7 @@ public:
   // them. For applicable resource, each call reports usage over the time period
   // since the previous invocation. For the first invocation, returns the total
   // usage since the initialization of the resource being monitored.
-  virtual UsageReport collectUsage();
+  virtual Try<UsageReport> collectUsage();
 
 protected:
   ResourceCollector* collector;

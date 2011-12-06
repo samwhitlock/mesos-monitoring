@@ -39,9 +39,9 @@ public:
 
   virtual ~ProcResourceCollector();
 
-  virtual double getMemoryUsage();
+  virtual Try<double> getMemoryUsage();
 
-  virtual Rate getCpuUsage();
+  virtual Try<Rate> getCpuUsage();
 
 private:
 

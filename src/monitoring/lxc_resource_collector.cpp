@@ -36,12 +36,12 @@ LxcResourceCollector::LxcResourceCollector(const std::string& _containerName)
 
 LxcResourceCollector::~LxcResourceCollector() {}
 
-double LxcResourceCollector::getMemoryUsage()
+Try<double> LxcResourceCollector::getMemoryUsage()
 {
   return getControlGroupDoubleValue("memory.memsw.usage_in_bytes");
 }
 
-Rate LxcResourceCollector::getCpuUsage()
+Try<Rate> LxcResourceCollector::getCpuUsage()
 {
   if (previousTimestamp == -1.0) {
     previousTimestamp = getContainerStartTime();
@@ -49,15 +49,20 @@ Rate LxcResourceCollector::getCpuUsage()
   
   double asMillisecs = getCurrentTime();
 
-  double cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
+  Try<double> cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
 
-  double elapsedTicks = cpuTicks - previousCpuTicks;
-  previousCpuTicks = cpuTicks;
+  if (cpuTicks.isError()) {
+    return Try::error("unable to read cpuacct.usage from lxc");
+  }
+
+  double ticks = cpuTicks.get();
+  double elapsedTicks = ticks - previousCpuTicks;
+  previousCpuTicks = ticks;
   
   double elapsedTime = asMillisecs - previousTimestamp;
   previousTimestamp = asMillisecs;
 
-  return Rate(elapsedTime, elapsedTicks);
+  return Try(Rate(elapsedTime, elapsedTicks));
 }
 
 bool LxcResourceCollector::getControlGroupValue(
@@ -82,14 +87,17 @@ bool LxcResourceCollector::getControlGroupValue(
   return true;
 }
 
-double LxcResourceCollector::getControlGroupDoubleValue(const std::string& property) const
+Try<double> LxcResourceCollector::getControlGroupDoubleValue(const std::string& property) const
 {
   std::stringstream ss;
 
-  getControlGroupValue(&ss, property);
-  double d;
-  ss >> d;
-  return d;
+  if (getControlGroupValue(&ss, property)) {
+    double d;
+    ss >> d;
+    return Try(d);
+  } else {
+    return Try::error("unable to read control group double value");
+  }
 }
 
 double LxcResourceCollector::getContainerStartTime() const

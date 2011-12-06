@@ -22,38 +22,39 @@
 
 namespace mesos { namespace internal { namespace monitoring {
 
-  ResourceMonitor::ResourceMonitor(ResourceCollector* _collector)
-    : collector(_collector) {}
+ResourceMonitor::ResourceMonitor(ResourceCollector* _collector)
+  : collector(_collector) {}
 
-  ResourceMonitor::~ResourceMonitor()
-  {
-    delete collector;
-  }
+ResourceMonitor::~ResourceMonitor()
+{
+  delete collector;
+}
 
-  // The default implementation collects only the cpu and memory
-  // for use in creating a UsageMessage
-  UsageReport ResourceMonitor::collectUsage()
-  {
-    double now = getCurrentTime();
+// The default implementation collects only the cpu and memory
+// for use in creating a UsageMessage
+Try<UsageReport> ResourceMonitor::collectUsage()
+{
+  //TODO(sam) refactor to use trys
+  double now = getCurrentTime();
 
-    Resource memory;
-    memory.set_type(Resource::SCALAR);
-    memory.set_name("mem_usage");
-    memory.mutable_scalar()->set_value(collector->getMemoryUsage());
+  Resource memory;
+  memory.set_type(Resource::SCALAR);
+  memory.set_name("mem_usage");
+  memory.mutable_scalar()->set_value(collector->getMemoryUsage());
 
-    Rate cpuUsage = collector->getCpuUsage();
+  Rate cpuUsage = collector->getCpuUsage();
 
-    Resource cpu;
-    cpu.set_type(Resource::SCALAR);
-    cpu.set_name("cpu_usage");
-    cpu.mutable_scalar()->set_value(cpuUsage.difference);
+  Resource cpu;
+  cpu.set_type(Resource::SCALAR);
+  cpu.set_name("cpu_usage");
+  cpu.mutable_scalar()->set_value(cpuUsage.difference);
 
-    Resources resources;
-    resources += cpu;
-    resources += memory;
+  Resources resources;
+  resources += cpu;
+  resources += memory;
 
-    return UsageReport(resources, now, cpuUsage.duration);
-  }
+  return UsageReport(resources, now, cpuUsage.duration);
+}
 
 }}} // namespace mesos { namespace internal { namespace monitoring {
 

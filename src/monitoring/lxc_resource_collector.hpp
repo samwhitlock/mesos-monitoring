@@ -31,15 +31,15 @@ public:
   LxcResourceCollector(const std::string& _containerName);
   virtual ~LxcResourceCollector();
 
-  virtual double getMemoryUsage();
-  virtual Rate getCpuUsage();
+  virtual Try<double> getMemoryUsage();
+  virtual Try<Rate> getCpuUsage();
 
 protected:
   const std::string containerName;
   double previousTimestamp;//FIXME(sam): having the 'uninitialized' value of -1.0 is a little hacky
   double previousCpuTicks;
 
-  double getControlGroupDoubleValue(const std::string& property) const;
+  Try<double> getControlGroupDoubleValue(const std::string& property) const;
 
   bool getControlGroupValue(std::iostream* ios, const std::string& property) const;
 

@@ -38,11 +38,11 @@ ProcResourceCollector::ProcResourceCollector(const string& _root_pid)
 
 ProcResourceCollector::~ProcResourceCollector() {}
 
-double ProcResourceCollector::getMemoryUsage()
+Try<double> ProcResourceCollector::getMemoryUsage()
 {
 }
 
-Rate ProcResourceCollector::getCpuUsage()
+Try<Rate> ProcResourceCollector::getCpuUsage()
 {
 }
 

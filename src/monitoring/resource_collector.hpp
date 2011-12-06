@@ -19,6 +19,8 @@
 #ifndef __RESOURCE_COLLECTOR_HPP__
 #define __RESOURCE_COLLECTOR_HPP__
 
+#include "common/try.hpp"
+
 namespace mesos { namespace internal { namespace monitoring {
 
 //TODO(sam): maybe template these for different duration, difference types
@@ -48,11 +50,11 @@ public:
   virtual ~ResourceCollector() {}
 
   // Returns the number of bytes currently used by the monitored system.
-  virtual double getMemoryUsage() = 0;
+  virtual Try<double> getMemoryUsage() = 0;
 
   // Returns the milliseconds of CPU time the monitored system has received
   // since it started.
-  virtual Rate getCpuUsage() = 0;
+  virtual Try<Rate> getCpuUsage() = 0;
   
 };
 
