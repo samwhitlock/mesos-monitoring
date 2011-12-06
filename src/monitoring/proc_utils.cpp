@@ -21,7 +21,6 @@
 #include <list>
 #include <pthread.h>
 #include <string>
-#include <sys/time.h>
 
 #include "common/foreach.hpp"
 #include "common/try.hpp"
@@ -105,13 +104,6 @@ Try<double> getBootTime()
 {
   pthread_once(&isBootTimeInitialized, initCachedBootTime);
   return cachedBootTime;
-}
-
-double getCurrentTime()
-{
-  timeval ctime;
-  gettimeofday(&ctime, NULL);
-  return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
 }
 
 Try<double> getStartTime(const string& pid)

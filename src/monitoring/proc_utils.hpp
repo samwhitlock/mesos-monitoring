@@ -19,8 +19,9 @@
 #ifndef __PROC_UTILS_HPP__
 #define __PROC_UTILS_HPP__
 
-#include <string>
 #include <list>
+#include <string>
+#include <sys/time.h>
 
 #include "common/try.hpp"
 
@@ -38,6 +39,10 @@ struct ProcessStats {
   double memUsage; // rss in bytes.
 };
 
+// Reads from proc and returns a list of all processes running on the
+// system.
+Try<std::list<std::string> > getAllPids();
+
 // Retrieves resource usage and metadata for a process. Takes the PID of
 // the process to query and returns a ProcessStats struct containing the
 // retrieved info.
@@ -46,16 +51,17 @@ Try<ProcessStats> getProcessStats(const std::string& pid);
 // Retrieves the system boot time (in milliseconds since epoch).
 Try<double> getBootTime();
 
-// Retrieves the current system time (in milliseconds since epoch).
-double getCurrentTime();
-
 // Retrieves the start time (in milliseconds since epoch) of the process
 // with the given PID.
 Try<double> getStartTime(const std::string& pid);
 
-// Reads from proc and returns a list of all processes running on the
-// system.
-Try<std::list<std::string> > getAllPids();
+// Retrieves the current system time (in milliseconds since epoch).
+inline double getCurrentTime()
+{
+  timeval ctime;
+  gettimeofday(&ctime, NULL);
+  return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
+}
 
 } // namespace monitoring {
 } // namespace internal {
