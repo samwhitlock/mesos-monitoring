@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "common/try.hpp"
 #include "monitoring/process_resource_collector.hpp"
 #include "proc_utils.hpp"
 
@@ -30,44 +31,49 @@ namespace mesos {
 namespace internal {
 namespace monitoring {
 
-// An implementation of the ProcessResourceCollector class that retrieves
-// resource usage information for a process and all its (sub)children from
-// proc.
+// An implementation of the ProcessResourceCollector class that
+// retrieves resource usage information for a process and all its
+// (sub)children from proc.
 class ProcResourceCollector : public ProcessResourceCollector
 {
 public:
-
   ProcResourceCollector(const std::string& rootPid);
 
   virtual ~ProcResourceCollector();
+
+  virtual void collectUsage();
 
   virtual Try<double> getMemoryUsage();
 
   virtual Try<Rate> getCpuUsage();
 
 private:
-
   const std::string rootPid;
-  double prevCpuUsage;
-  double prevTimestamp;
-  bool initialized;
 
-  // Retrieve the info for all processes rooted at the process with the given
-  // PID.
+  Try<double> currentMemUsage;
+
+  Try<double> prevCpuUsage;
+
+  Try<double> currentCpuUsage;
+
+  Try<double> prevTimestamp;
+
+  Try<double> currentTimestamp;
+
+  bool isInitialized;
+
+  // Retrieve the info for all processes rooted at the process with the
+  // given PID.
  Try<std::vector<ProcessStats> > getProcessTreeStats();
+
+ // Updates or initializes the previous resource usage state.
+ void updatePreviousUsage();
 
   // Aggregates the info all of the given ProcessStats and stores the result in
   // memTotal and cpuTotal.
   void aggregateResourceUsage(const std::vector<ProcessStats>& processes,
       double& memTotal,
       double& cpuTotal);
-
-  // Collects resource usage statistics and populates the arguments describing
-  // them.
-  void collectUsage(double& memUsage,
-    double& cpuUsage,
-    double& timestamp,
-    double& duration);
 };
 
 } // namespace monitoring {
@@ -75,4 +81,3 @@ private:
 } // namespace mesos {
 
 #endif // __PROC_RESOURCE_COLLECTOR_HPP__
-

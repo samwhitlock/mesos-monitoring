@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+#include <assert.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -23,7 +24,6 @@
 #include "common/foreach.hpp"
 #include "common/resources.hpp"
 #include "common/try.hpp"
-
 #include "monitoring/proc_resource_collector.hpp"
 #include "proc_utils.hpp"
 
@@ -31,50 +31,79 @@ using std::ios_base;
 using std::string;
 using std::vector;
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
-ProcResourceCollector::ProcResourceCollector(const string& _rootPid)
-  : rootPid(_rootPid), initialized(false) {}
+inline Try<double> initialTryValue()
+{
+  return Try<double>::error("initial value");
+}
+
+ProcResourceCollector::ProcResourceCollector(const string& _rootPid) :
+  rootPid(_rootPid),
+  isInitialized(false),
+  currentMemUsage(initialTryValue()),
+  currentCpuUsage(initialTryValue()),
+  currentTimestamp(initialTryValue()),
+  prevCpuUsage(initialTryValue()),
+  prevTimestamp(initialTryValue()) {}
 
 ProcResourceCollector::~ProcResourceCollector() {}
 
 Try<double> ProcResourceCollector::getMemoryUsage()
 {
+  return currentMemUsage;
 }
 
 Try<Rate> ProcResourceCollector::getCpuUsage()
 {
+  if (currentCpuUsage.isSome() && currentTimestamp.isSome()) {
+    assert(prevCpuUsage.isSome() && prevTimestamp.isSome());
+    return Rate(currentTimestamp.get() - prevTimestamp.get(),
+        currentCpuUsage.get() - prevCpuUsage.get());
+  } else {
+    return Try<Rate>::error(currentCpuUsage.error());
+  }
 }
 
-void ProcResourceCollector::collectUsage(double& memUsage,
-    double& cpuUsage,
-    double& timestamp,
-    double& duration)
+void ProcResourceCollector::collectUsage()
 {
-  double measuredCpuUsageTotal;
-  // Set the initial resource usage on the first reading.
-  if (!initialized) {
-    prevCpuUsage = 0;
-    prevTimestamp = getStartTime(rootPid);
-    initialized = true;
-  }
+  updatePreviousUsage();
+
   // Read the process stats.
   Try<vector<ProcessStats> > tryProcessTree = getProcessTreeStats();
   if (tryProcessTree.isError()) {
-    // TODO(adegtiar): handle the failed Try.
-    timestamp = -1;
+    currentMemUsage = Try<double>::error(tryProcessTree.error());
+    currentCpuUsage = Try<double>::error(tryProcessTree.error());
+    currentTimestamp = Try<double>::error(tryProcessTree.error());
     return;
   }
   vector<ProcessStats> processTree = tryProcessTree.get();
-  timestamp = getCurrentTime();
-  // Sum up the resource usage stats.
-  aggregateResourceUsage(processTree, memUsage, measuredCpuUsageTotal);
-  measuredCpuUsageTotal = ticksToMillis(measuredCpuUsageTotal);
-  duration = timestamp - prevTimestamp;
-  cpuUsage = measuredCpuUsageTotal - prevCpuUsage;
-  // Update the previous usage stats.
-  prevTimestamp = timestamp;
-  prevCpuUsage = measuredCpuUsageTotal;
+
+  // Success, so roll over previous usage.
+  prevTimestamp = currentTimestamp;
+  prevCpuUsage = currentCpuUsage;
+
+  // Sum up the current resource usage stats.
+  double cpuUsageTicks, memUsage;
+  aggregateResourceUsage(processTree, memUsage, cpuUsageTicks);
+  currentMemUsage = Try<double>::some(memUsage);
+  currentCpuUsage = Try<double>::some(ticksToMillis(cpuUsageTicks));
+  currentTimestamp = Try<double>::some(getCurrentTime());
+}
+
+void ProcResourceCollector::updatePreviousUsage()
+{
+  if (!isInitialized) {
+    prevCpuUsage = Try<double>::some(0);
+    prevTimestamp = Try<double>::some(getStartTime(rootPid));
+    isInitialized = true;
+  } else if (currentMemUsage.isSome() && currentCpuUsage.isSome()) {
+    // Roll over prev usage from current usage.
+    prevCpuUsage = currentCpuUsage;
+    prevTimestamp = currentTimestamp;
+  } // else keep previous usage.
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
@@ -118,5 +147,6 @@ void ProcResourceCollector::aggregateResourceUsage(
   }
 }
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
-
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
