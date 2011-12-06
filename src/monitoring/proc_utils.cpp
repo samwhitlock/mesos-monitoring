@@ -20,6 +20,7 @@
 #include <fstream>
 #include <glog/logging.h>
 #include <iostream>
+#include <pthread.h>
 #include <sstream>
 #include <string>
 #include <sys/time.h>
@@ -39,6 +40,28 @@ using std::vector;
 namespace mesos {
 namespace internal {
 namespace monitoring {
+
+// Code for initializing cached boot time.
+static pthread_once_t isBootTimeInitialized = PTHREAD_ONCE_INIT;
+static Try<double> cachedBootTime = Try<double>::error("not initialized");
+
+void initCachedBootTime() {
+  string line;
+  ifstream statFile("/proc/stat");
+  if (statFile.is_open()) {
+    while (statFile.good()) {
+      getline (statFile, line);
+      if (line.compare(0, 6, "btime ") == 0) {
+        Try<double> bootTime = utils::numify<double>(line.substr(6));
+        if (bootTime.isSome()) {
+          cachedBootTime = bootTime.get() * 1000.0;
+          return;
+        }
+      }
+    }
+  }
+  cachedBootTime = Try<double>::error("unable to read boot time from proc");
+}
 
 Try<ProcessStats> getProcessStats(const string& pid)
 {
@@ -67,20 +90,8 @@ Try<ProcessStats> getProcessStats(const string& pid)
 
 Try<double> getBootTime()
 {
-  string line;
-  ifstream statFile("/proc/stat");
-  if (statFile.is_open()) {
-    while (statFile.good()) {
-      getline (statFile, line);
-      if (line.compare(0, 6, "btime ") == 0) {
-        Try<double> bootTime = utils::numify<double>(line.substr(6));
-        if (bootTime.isSome()) {
-          return bootTime.get() * 1000.0;
-        }
-      }
-    }
-  }
-  return Try<double>::error("unable to read boot time from proc");
+  pthread_once(&isBootTimeInitialized, initCachedBootTime);
+  return cachedBootTime;
 }
 
 double getCurrentTime()
