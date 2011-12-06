@@ -26,7 +26,9 @@
 
 using std::string;
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 ProcessResourceCollector* ProcessResourceCollector::create(const string& root_pid)
 {
@@ -37,5 +39,6 @@ ProcessResourceCollector* ProcessResourceCollector::create(const string& root_pi
 #endif
 }
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
-
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {

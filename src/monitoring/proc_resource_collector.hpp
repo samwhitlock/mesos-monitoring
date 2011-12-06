@@ -26,7 +26,9 @@
 #include "monitoring/process_resource_collector.hpp"
 #include "proc_utils.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 // An implementation of the ProcessResourceCollector class that retrieves
 // resource usage information for a process and all its (sub)children from
@@ -68,7 +70,9 @@ private:
     double& duration);
 };
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
 
 #endif // __PROC_RESOURCE_COLLECTOR_HPP__
 

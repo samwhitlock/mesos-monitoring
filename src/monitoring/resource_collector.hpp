@@ -21,7 +21,9 @@
 
 #include "common/try.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 //TODO(sam): maybe template these for different duration, difference types
 struct Rate {
@@ -58,7 +60,8 @@ public:
   
 };
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
 
 #endif // __RESOURCE_COLLECTOR_HPP__
-

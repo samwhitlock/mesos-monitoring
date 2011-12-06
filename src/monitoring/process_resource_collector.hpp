@@ -23,7 +23,9 @@
 
 #include "monitoring/resource_collector.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 // An abstract implementation of the ResourceCollector class that
 // retrieves resource usage information for a process or processes.
@@ -38,7 +40,8 @@ public:
   virtual ~ProcessResourceCollector() {}
 };
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
 
 #endif // __PROCESS_RESOURCE_COLLECTOR_HPP__
-

@@ -21,7 +21,9 @@
 #include "proc_utils.hpp"
 #include "resource_monitor.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 ResourceMonitor::ResourceMonitor(ResourceCollector* _collector)
   : collector(_collector) {}
@@ -71,5 +73,6 @@ Try<UsageReport> ResourceMonitor::collectUsage()
   return UsageReport(resources, now, duration);
 }
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
-
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {

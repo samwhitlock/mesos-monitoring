@@ -22,7 +22,9 @@
 #include "common/resources.hpp"
 #include "resource_collector.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 // A single measurement of resources. Some resources may be measured relative
 // to a previous measurement, and are therefore associated with a duration.
@@ -63,6 +65,8 @@ protected:
   ResourceCollector* collector;
 };
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
 
 #endif // __RESOURCE_MONITOR_HPP__

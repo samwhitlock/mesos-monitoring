@@ -27,7 +27,9 @@
 #include "common/resources.hpp"
 #include "mesos/mesos.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 LxcResourceCollector::LxcResourceCollector(const std::string& _containerName)
   : containerName(_containerName), previousTimestamp(-1.0), previousCpuTicks(0.0)
@@ -108,5 +110,6 @@ double LxcResourceCollector::getContainerStartTime() const
   return getStartTime(allPids.front());
 }
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
-
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {

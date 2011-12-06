@@ -23,7 +23,9 @@
 
 #include "resource_collector.hpp"
 
-namespace mesos { namespace internal { namespace monitoring {
+namespace mesos {
+namespace internal {
+namespace monitoring {
 
 class LxcResourceCollector : public ResourceCollector
 {
@@ -48,7 +50,8 @@ protected:
   double getContainerStartTime() const;
 };
 
-}}} // namespace mesos { namespace internal { namespace monitoring {
+} // namespace monitoring {
+} // namespace internal {
+} // namespace mesos {
 
 #endif // __LXC_RESOURCE_COLLECTOR_HPP__
-
