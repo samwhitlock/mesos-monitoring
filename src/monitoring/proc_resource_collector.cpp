@@ -33,8 +33,8 @@ using std::vector;
 
 namespace mesos { namespace internal { namespace monitoring {
 
-ProcResourceCollector::ProcResourceCollector(const string& _root_pid)
-  : root_pid(_root_pid), initialized(false) {}
+ProcResourceCollector::ProcResourceCollector(const string& _rootPid)
+  : rootPid(_rootPid), initialized(false) {}
 
 ProcResourceCollector::~ProcResourceCollector() {}
 
@@ -46,75 +46,75 @@ Try<Rate> ProcResourceCollector::getCpuUsage()
 {
 }
 
-void ProcResourceCollector::collectUsage(double& mem_usage,
-    double& cpu_usage,
+void ProcResourceCollector::collectUsage(double& memUsage,
+    double& cpuUsage,
     double& timestamp,
     double& duration)
 {
-  double measured_cpu_usage_total;
+  double measuredCpuUsageTotal;
   // Set the initial resource usage on the first reading.
   if (!initialized) {
-    prev_cpu_usage = 0;
-    prev_timestamp = getStartTime(root_pid);
+    prevCpuUsage = 0;
+    prevTimestamp = getStartTime(rootPid);
     initialized = true;
   }
   // Read the process stats.
-  Try<vector<ProcessStats> > try_process_tree = getProcessTreeStats();
-  if (try_process_tree.isError()) {
+  Try<vector<ProcessStats> > tryProcessTree = getProcessTreeStats();
+  if (tryProcessTree.isError()) {
     // TODO(adegtiar): handle the failed Try.
     timestamp = -1;
     return;
   }
-  vector<ProcessStats> process_tree = try_process_tree.get();
+  vector<ProcessStats> processTree = tryProcessTree.get();
   timestamp = getCurrentTime();
   // Sum up the resource usage stats.
-  aggregateResourceUsage(process_tree, mem_usage, measured_cpu_usage_total);
-  measured_cpu_usage_total = ticksToMillis(measured_cpu_usage_total);
-  duration = timestamp - prev_timestamp;
-  cpu_usage = measured_cpu_usage_total - prev_cpu_usage;
+  aggregateResourceUsage(processTree, memUsage, measuredCpuUsageTotal);
+  measuredCpuUsageTotal = ticksToMillis(measuredCpuUsageTotal);
+  duration = timestamp - prevTimestamp;
+  cpuUsage = measuredCpuUsageTotal - prevCpuUsage;
   // Update the previous usage stats.
-  prev_timestamp = timestamp;
-  prev_cpu_usage = measured_cpu_usage_total;
+  prevTimestamp = timestamp;
+  prevCpuUsage = measuredCpuUsageTotal;
 }
 
 // TODO(adegtiar): consider doing a full tree walk.
 Try<vector<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
 {
-  vector<ProcessStats> process_tree;
-  Try<ProcessStats> tryRootStats = getProcessStats(root_pid);
-  if(tryRootStats.isError()) {
+  vector<ProcessStats> processTree;
+  Try<ProcessStats> tryRootStats = getProcessStats(rootPid);
+  if (tryRootStats.isError()) {
     return Try<vector<ProcessStats> >::error(tryRootStats.error());
   }
-  ProcessStats root_process = tryRootStats.get();
-  vector<string> all_pids = getAllPids();
+  ProcessStats rootProcess = tryRootStats.get();
+  vector<string> allPids = getAllPids();
   // Attempt to add all process in the same tree by checking for:
   //   1) Direct child via match on ppid.
   //   2) Same process group as root.
   //   3) Same session as root.
-  foreach (const string& pid, all_pids) {
+  foreach (const string& pid, allPids) {
     Try<ProcessStats> tryNextProcess = getProcessStats(pid);
     if (tryNextProcess.isSome()) {
       ProcessStats nextProcess = tryNextProcess.get();
-      if (nextProcess.ppid == root_process.ppid ||
-          nextProcess.pgrp == root_process.pgrp ||
-          nextProcess.session == root_process.session) {
-        process_tree.push_back(nextProcess);
+      if (nextProcess.ppid == rootProcess.ppid ||
+          nextProcess.pgrp == rootProcess.pgrp ||
+          nextProcess.session == rootProcess.session) {
+        processTree.push_back(nextProcess);
       }
     } // else process must have died in between calls.
   }
-  return process_tree;
+  return processTree;
 }
 
 void ProcResourceCollector::aggregateResourceUsage(
     const vector<ProcessStats>& processes,
-    double& mem_total,
-    double& cpu_total)
+    double& memTotal,
+    double& cpuTotal)
 {
-  mem_total = 0;
-  cpu_total = 0;
+  memTotal = 0;
+  cpuTotal = 0;
   foreach (const ProcessStats& pinfo, processes) {
-    mem_total += pinfo.memUsage;
-    cpu_total += pinfo.cpuTime;
+    memTotal += pinfo.memUsage;
+    cpuTotal += pinfo.cpuTime;
   }
 }
 

@@ -30,10 +30,10 @@ namespace mesos {
 namespace internal {
 namespace monitoring {
 
-ProcessResourceCollector* ProcessResourceCollector::create(const string& root_pid)
+ProcessResourceCollector* ProcessResourceCollector::create(const string& rootPid)
 {
 #ifdef __linux__
-  return new ProcResourceCollector(root_pid);
+  return new ProcResourceCollector(rootPid);
 #else
   return NULL;
 #endif

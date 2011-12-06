@@ -35,7 +35,7 @@ public:
 
   // Creates a new ProcessResourceCollector appropriate for the current
   // system. If no monitor can be constructed, returns NULL.
-  static ProcessResourceCollector* create(const std::string& root_pid);
+  static ProcessResourceCollector* create(const std::string& rootPid);
 
   virtual ~ProcessResourceCollector() {}
 };

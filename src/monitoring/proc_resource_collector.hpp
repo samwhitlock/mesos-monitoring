@@ -37,7 +37,7 @@ class ProcResourceCollector : public ProcessResourceCollector
 {
 public:
 
-  ProcResourceCollector(const std::string& root_pid);
+  ProcResourceCollector(const std::string& rootPid);
 
   virtual ~ProcResourceCollector();
 
@@ -47,9 +47,9 @@ public:
 
 private:
 
-  const std::string root_pid;
-  double prev_cpu_usage;
-  double prev_timestamp;
+  const std::string rootPid;
+  double prevCpuUsage;
+  double prevTimestamp;
   bool initialized;
 
   // Retrieve the info for all processes rooted at the process with the given
@@ -57,15 +57,15 @@ private:
  Try<std::vector<ProcessStats> > getProcessTreeStats();
 
   // Aggregates the info all of the given ProcessStats and stores the result in
-  // mem_total and cpu_total.
+  // memTotal and cpuTotal.
   void aggregateResourceUsage(const std::vector<ProcessStats>& processes,
-      double& mem_total,
-      double& cpu_total);
+      double& memTotal,
+      double& cpuTotal);
 
   // Collects resource usage statistics and populates the arguments describing
   // them.
-  void collectUsage(double& mem_usage,
-    double& cpu_usage,
+  void collectUsage(double& memUsage,
+    double& cpuUsage,
     double& timestamp,
     double& duration);
 };
