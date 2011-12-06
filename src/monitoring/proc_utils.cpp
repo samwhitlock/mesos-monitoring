@@ -29,7 +29,6 @@
 #include "common/foreach.hpp"
 #include "common/try.hpp"
 #include "common/utils.hpp"
-
 #include "proc_utils.hpp"
 
 using std::ifstream;
@@ -63,6 +62,19 @@ void initCachedBootTime() {
   cachedBootTime = Try<double>::error("unable to read boot time from proc");
 }
 
+// Converts time in jiffies to milliseconds.
+inline double jiffiesToMillis(double jiffies)
+{
+  return jiffies * 1000.0 / HZ;
+}
+
+// Converts time in system ticks (as defined by _SC_CLK_TCK, NOT CPU
+// clock ticks) to milliseconds.
+inline double ticksToMillis(double ticks)
+{
+  return ticks * 1000.0 / sysconf(_SC_CLK_TCK);
+}
+
 Try<ProcessStats> getProcessStats(const string& pid)
 {
   string procPath = "/proc/" + pid + "/stat";
@@ -73,15 +85,20 @@ Try<ProcessStats> getProcessStats(const string& pid)
     string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
     string cutime, cstime, priority, nice, O, itrealvalue, vsize;
     // These are the fields we want.
-    long rss, utime, stime;
+    double rss, utime, stime, starttime;
     // Parse all fields from stat.
     statStream >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
                 >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
                 >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
                 >> cstime >> priority >> nice >> O >> itrealvalue
-                >> pinfo.startTime >> vsize >> rss;
+                >> starttime >> vsize >> rss;
+    Try<double> bootTime = getBootTime();
+    if (bootTime.isError()) {
+      return Try<ProcessStats>::error(bootTime.error());
+    }
+    pinfo.startTime = bootTime.get() + jiffiesToMillis(starttime);
     pinfo.memUsage = rss * sysconf(_SC_PAGE_SIZE);
-    pinfo.cpuTime = utime + stime;
+    pinfo.cpuTime = ticksToMillis(utime + stime);
     return pinfo;
   } else {
     return Try<ProcessStats>::error("Cannot open " + procPath + " for stats");
@@ -104,14 +121,7 @@ double getCurrentTime()
 double getStartTime(const string& pid)
 {
   // TODO(adegtiar): make this a try.
-  bootJiffiesToMillis(getProcessStats(pid).get().startTime);
-}
-
-double bootJiffiesToMillis(double jiffies)
-{
-  double startTimeAfterBoot = jiffies * 1000.0 / HZ;
-  // TODO(adegtiar): make this a try.
-  return getBootTime().get() + startTimeAfterBoot;
+ return getProcessStats(pid).get().startTime;
 }
 
 vector<string> getAllPids() {

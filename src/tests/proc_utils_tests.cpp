@@ -77,7 +77,7 @@ TEST(ProcUtilsTest, ProcessStats)
   expectUInt(processStats.ppid);
   expectUInt(processStats.pgrp);
   expectUInt(processStats.session);
-  verifyStartTime(bootJiffiesToMillis(processStats.startTime));
+  verifyStartTime(processStats.startTime);
   EXPECT_GT(processStats.cpuTime, 0.0);
   EXPECT_GT(processStats.memUsage, 0.0);
 }

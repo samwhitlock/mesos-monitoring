@@ -89,7 +89,7 @@ void ProcResourceCollector::collectUsage()
   double cpuUsageTicks, memUsage;
   aggregateResourceUsage(processTree, memUsage, cpuUsageTicks);
   currentMemUsage = Try<double>::some(memUsage);
-  currentCpuUsage = Try<double>::some(ticksToMillis(cpuUsageTicks));
+  currentCpuUsage = Try<double>::some(cpuUsageTicks);
   currentTimestamp = Try<double>::some(getCurrentTime());
 }
 
