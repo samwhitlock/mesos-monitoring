@@ -18,11 +18,8 @@
 
 #include <asm/param.h>
 #include <fstream>
-#include <glog/logging.h>
-#include <iostream>
 #include <list>
 #include <pthread.h>
-#include <sstream>
 #include <string>
 #include <sys/time.h>
 
@@ -33,7 +30,6 @@
 
 using std::ifstream;
 using std::string;
-using std::stringstream;
 using std::list;
 
 namespace mesos {
@@ -78,8 +74,8 @@ inline double ticksToMillis(double ticks)
 Try<ProcessStats> getProcessStats(const string& pid)
 {
   string procPath = "/proc/" + pid + "/stat";
-  ifstream statStream(procPath.c_str());
-  if (statStream.is_open()) {
+  ifstream pStatFile(procPath.c_str());
+  if (pStatFile.is_open()) {
     ProcessStats pinfo;
     // Dummy vars for leading entries in stat that we don't care about.
     string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
@@ -87,7 +83,7 @@ Try<ProcessStats> getProcessStats(const string& pid)
     // These are the fields we want.
     double rss, utime, stime, starttime;
     // Parse all fields from stat.
-    statStream >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
+    pStatFile >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
                 >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
                 >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
                 >> cstime >> priority >> nice >> O >> itrealvalue
@@ -136,7 +132,7 @@ Try<list<string> > getAllPids() {
     }
   }
   if (pids.empty()) {
-    return Try<list<string> >::error("Failed to get all pids from proc");
+    return Try<list<string> >::error("Failed to retrieve pids from proc");
   } else {
     return pids;
   }
