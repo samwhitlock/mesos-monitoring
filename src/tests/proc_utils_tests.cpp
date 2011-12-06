@@ -42,30 +42,34 @@ void expectUInt(const string& str)
 void verifyStartTime(const double& startTime)
 {
   EXPECT_GT(startTime, 0.0);
-  // TODO(adegtiar): fix the use of Trys.
-  EXPECT_GT(startTime, getBootTime().get());
   EXPECT_LT(startTime, getCurrentTime());
+  Try<double> bootTime = getBootTime();
+  ASSERT_FALSE(bootTime.isError());
+  EXPECT_GT(startTime, getBootTime().get());
 }
 
 TEST(DISABLED_ProcUtilsTest, EnableOnLinuxOnly) {}
 
 TEST(ProcUtilsTest, BootTime)
 {
-  // TODO(adegtiar): fix the use of Trys.
-  EXPECT_GT(getBootTime().get(), 0.0);
+  Try<double> bootTime = getBootTime();
+  ASSERT_FALSE(bootTime.isError());
+  EXPECT_GT(bootTime.get(), 0.0);
 }
 
 TEST(ProcUtilsTest, CurrentTime)
 {
   EXPECT_GT(getCurrentTime(), 0.0);
-  // TODO(adegtiar): fix the use of Trys.
-  EXPECT_GT(getCurrentTime(), getBootTime().get());
+  Try<double> bootTime = getBootTime();
+  ASSERT_FALSE(bootTime.isError());
+  EXPECT_GT(getCurrentTime(), bootTime.get());
 }
 
 TEST(ProcUtilsTest, StartTime)
 {
-  double startTime = getStartTime("self");
-  verifyStartTime(startTime);
+  Try<double> startTime = getStartTime("self");
+  ASSERT_FALSE(startTime.isError());
+  verifyStartTime(startTime.get());
 }
 
 TEST(ProcUtilsTest, ProcessStats)

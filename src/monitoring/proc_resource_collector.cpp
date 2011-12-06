@@ -58,10 +58,14 @@ Try<double> ProcResourceCollector::getMemoryUsage()
 
 Try<Rate> ProcResourceCollector::getCpuUsage()
 {
-  if (currentCpuUsage.isSome() && currentTimestamp.isSome()) {
-    assert(prevCpuUsage.isSome() && prevTimestamp.isSome());
+  if (currentCpuUsage.isSome() && currentTimestamp.isSome() &&
+      prevCpuUsage.isSome() && prevTimestamp.isSome()) {
     return Rate(currentTimestamp.get() - prevTimestamp.get(),
         currentCpuUsage.get() - prevCpuUsage.get());
+  } else if (prevTimestamp.isError()) {
+    // This only happens when process start time lookup fails. Might as
+    // well report this first.
+    return Try<Rate>::error(prevTimestamp.error());
   } else {
     return Try<Rate>::error(currentCpuUsage.error());
   }
@@ -97,7 +101,7 @@ void ProcResourceCollector::updatePreviousUsage()
 {
   if (!isInitialized) {
     prevCpuUsage = Try<double>::some(0);
-    prevTimestamp = Try<double>::some(getStartTime(rootPid));
+    prevTimestamp = getStartTime(rootPid);
     isInitialized = true;
   } else if (currentMemUsage.isSome() && currentCpuUsage.isSome()) {
     // Roll over prev usage from current usage.

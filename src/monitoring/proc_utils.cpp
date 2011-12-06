@@ -118,10 +118,14 @@ double getCurrentTime()
   return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
 }
 
-double getStartTime(const string& pid)
+Try<double> getStartTime(const string& pid)
 {
-  // TODO(adegtiar): make this a try.
- return getProcessStats(pid).get().startTime;
+  Try<ProcessStats> pStats = getProcessStats(pid);
+  if (pStats.isError()) {
+    return Try<double>::error(pStats.error());
+  } else {
+    return pStats.get().startTime;
+  }
 }
 
 vector<string> getAllPids() {

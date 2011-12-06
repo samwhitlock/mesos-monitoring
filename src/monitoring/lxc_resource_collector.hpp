@@ -47,7 +47,7 @@ protected:
 
   // gets the approximate start time for the container
   // used initial call of collectUsage when no previous data is available
-  double getContainerStartTime() const;
+  Try<double> getContainerStartTime() const;
 };
 
 } // namespace monitoring {

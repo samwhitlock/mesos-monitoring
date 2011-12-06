@@ -46,7 +46,8 @@ Try<double> LxcResourceCollector::getMemoryUsage()
 Try<Rate> LxcResourceCollector::getCpuUsage()
 {
   if (previousTimestamp == -1.0) {
-    previousTimestamp = getContainerStartTime();
+    // TODO(sam): Make this handle the Try of the getStartTime.
+    previousTimestamp = getContainerStartTime().get();
   }
   
   double asMillisecs = getCurrentTime();
@@ -102,7 +103,7 @@ Try<double> LxcResourceCollector::getControlGroupDoubleValue(const std::string& 
   }
 }
 
-double LxcResourceCollector::getContainerStartTime() const
+Try<double> LxcResourceCollector::getContainerStartTime() const
 {
   using namespace std;
   vector<string> allPids = getAllPids();//TODO does this need to be sorted?
