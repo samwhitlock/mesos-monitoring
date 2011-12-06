@@ -20,6 +20,8 @@
 #include <gmock/gmock.h>
 
 #include "common/try.hpp"
+#include "common/resources.hpp"
+#include "monitoring/proc_utils.hpp"
 #include "monitoring/resource_collector.hpp"
 #include "monitoring/resource_monitor.hpp"
 
@@ -27,8 +29,11 @@
  * - just one test to make sure that it pushes through state correctly
  */ 
 
+using namespace mesos;
+using namespace mesos::internal;
 using namespace mesos::internal::monitoring;
-using ::testing::Return;
+
+using testing::Return;
 
 class MockCollector : public ResourceCollector
 {
@@ -40,20 +45,31 @@ public:
 
 TEST(ResourceMonitorTest, MonitorsCorrectly)
 {
-  MockCollector mc;
+  MockCollector* mc = new MockCollector();
 
   // TODO(sam) put call requirements here!
-  EXPECT_CALL(mc, getMemoryUsage())
+  double memoryUsage = 123456789.0;
+  EXPECT_CALL(*mc, getMemoryUsage())
     .Times(1)
-    .WillOnce(Return(Try<double>::some(123456789.0)));
+    .WillOnce(Return(Try<double>::some(memoryUsage)));
 
-  EXPECT_CALL(mc, getCpuUsage())
+  double duration = 13579.0, difference = 2468.0;
+  EXPECT_CALL(*mc, getCpuUsage())
     .Times(1)
-    .WillOnce(Return(Try<Rate>::some(Rate(13579.0,2468.0))));
+    .WillOnce(Return(Try<Rate>::some(Rate(duration, difference))));
 
-  // TODO(sam): This can't be constructed as is. Results in heap errors.
-//  ResourceMonitor rm(&mc);
+  ResourceMonitor rm(mc);
 
-  //TODO(sam) do some calls on rm and check out what you get
+  Try<UsageReport> tur = rm.collectUsage();
+
+  ASSERT_TRUE(tur.isSome());
+  
+  UsageReport ur = tur.get();
+  Resources r = ur.resources;
+
+  EXPECT_EQ(duration, ur.duration);
+  EXPECT_FALSE(ur.timestamp > getCurrentTime());//To fix roundoff errors
+
+  EXPECT_EQ(memoryUsage, r.get("mem_usage", Resource::Scalar()).value());
+  EXPECT_EQ(difference, r.get("cpu_usage", Resource::Scalar()).value());
 }
-

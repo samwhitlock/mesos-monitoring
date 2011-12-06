@@ -58,11 +58,12 @@ Try<UsageReport> ResourceMonitor::collectUsage()
 
   Try<Rate> cpuUsage = collector->getCpuUsage();
   if (cpuUsage.isSome()) {
+    Rate rate = cpuUsage.get();
     Resource cpu;
     cpu.set_type(Resource::SCALAR);
     cpu.set_name("cpu_usage");
-    cpu.mutable_scalar()->set_value(cpuUsage.get().difference);
-    duration = cpuUsage.get().duration;
+    cpu.mutable_scalar()->set_value(rate.difference);
+    duration = rate.duration;
     resources += cpu;
   } else {
     return Try<UsageReport>::error(cpuUsage.error());
