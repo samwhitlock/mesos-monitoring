@@ -19,9 +19,10 @@
 #ifndef __PROC_UTILS_HPP__
 #define __PROC_UTILS_HPP__
 
+#include <sys/time.h>
+
 #include <list>
 #include <string>
-#include <sys/time.h>
 
 #include "common/try.hpp"
 
