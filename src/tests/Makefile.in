@@ -150,6 +150,10 @@ TESTS_OBJ = main.o utils.o master_tests.o resource_offers_tests.o	\
 	    zookeeper_server_tests.o zookeeper_tests.o			\
 	    url_processor_tests.o killtree_tests.o exception_tests.o
 
+ifeq ($(OS_NAME),linux)
+  TESTS_OBJ += proc_utils_tests.o
+endif
+
 ALLTESTS_EXE = $(BINDIR)/tests/all-tests
 
 PROCESS_SPAWN = $(BINDIR)/tests/process_spawn

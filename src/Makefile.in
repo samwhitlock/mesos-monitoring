@@ -133,6 +133,12 @@ ifeq ($(OS_NAME),linux)
   SLAVE_OBJ += slave/lxc_isolation_module.o
 endif
 
+ifeq ($(OS_NAME),linux)
+  MONITORING_OBJ += monitoring/proc_utils.o
+endif
+
+SLAVE_OBJ += $(MONITORING_OBJ)
+
 PROTOBUF_OBJ = mesos.pb.o messages/messages.pb.o messages/log.pb.o
 
 MASTER_WEBUI_OBJ = master/webui.o
@@ -255,7 +261,7 @@ SCRIPT_FILES = $(BINDIR)/killtree.sh
 # Create rules for building the directories that aren't created
 # automagically by configure.
 OBJ_DIRECTORIES = common configurator detector exec launcher local log	\
-                  master messages sched slave zookeeper
+                  master messages sched slave zookeeper monitoring
 
 WEBUI_DIRECTORIES = $(BINDIR)/webui/common $(BINDIR)/webui/master	\
                     $(BINDIR)/webui/slave $(BINDIR)/webui/static
