@@ -92,6 +92,7 @@ Try<ProcessStats> getProcessStats(const string& pid)
       return Try<ProcessStats>::error(bootTime.error());
     }
     pinfo.startTime = bootTime.get() + jiffiesToMillis(starttime);
+    // TODO(adegtiar): consider doing something more sophisticated.
     pinfo.memUsage = rss * sysconf(_SC_PAGE_SIZE);
     pinfo.cpuTime = ticksToMillis(utime + stime);
     return pinfo;
