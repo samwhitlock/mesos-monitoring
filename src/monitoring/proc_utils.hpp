@@ -34,9 +34,9 @@ struct ProcessStats {
   std::string ppid;
   std::string pgrp;
   std::string session;
-  double cpuTime;  // total time in milliseconds.
-  double startTime; // in milliseconds since epoch.
-  double memUsage; // current usage in bytes.
+  double cpuTime;  // Total time in milliseconds.
+  double startTime; // Timestamp in milliseconds since epoch.
+  double memUsage; // Current usage in bytes.
 };
 
 // Reads from proc and returns a list of all processes running on the
