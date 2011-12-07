@@ -58,14 +58,14 @@ void initCachedBootTime() {
 }
 
 // Converts time in jiffies to milliseconds.
-inline double jiffiesToMillis(double jiffies)
+static inline double jiffiesToMillis(double jiffies)
 {
   return jiffies * 1000.0 / HZ;
 }
 
 // Converts time in system ticks (as defined by _SC_CLK_TCK, NOT CPU
 // clock ticks) to milliseconds.
-inline double ticksToMillis(double ticks)
+static inline double ticksToMillis(double ticks)
 {
   return ticks * 1000.0 / sysconf(_SC_CLK_TCK);
 }
