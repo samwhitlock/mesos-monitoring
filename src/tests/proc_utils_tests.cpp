@@ -48,8 +48,6 @@ void verifyStartTime(const double& startTime)
   EXPECT_GT(startTime, getBootTime().get());
 }
 
-TEST(DISABLED_ProcUtilsTest, EnableOnLinuxOnly) {}
-
 TEST(ProcUtilsTest, BootTime)
 {
   Try<double> bootTime = getBootTime();
