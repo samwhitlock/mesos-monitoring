@@ -97,7 +97,7 @@ TEST(ProcUtilsTest, GetAllPids)
   // Make sure the list contains the pid of the current process.
   EXPECT_NE(find(allPids.begin(), allPids.end(), mPid), allPids.end());
   // Make sure all pids are natural numbers.
-  foreach(const string& pid, allPids) {
+  foreach (const string& pid, allPids) {
     expectUInt(pid);
   }
 }
