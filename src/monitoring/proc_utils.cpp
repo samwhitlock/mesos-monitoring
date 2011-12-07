@@ -79,14 +79,14 @@ Try<ProcessStats> getProcessStats(const string& pid)
     ProcessStats pinfo;
     // Dummy vars for leading entries in stat that we don't care about.
     string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
-    string cutime, cstime, priority, nice, O, itrealvalue, vsize;
+    string cutime, cstime, priority, nice, num_threads, itrealvalue, vsize;
     // These are the fields we want.
     double rss, utime, stime, starttime;
     // Parse all fields from stat.
     pStatFile >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
                 >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
                 >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
-                >> cstime >> priority >> nice >> O >> itrealvalue
+                >> cstime >> priority >> nice >> num_threads >> itrealvalue
                 >> starttime >> vsize >> rss;
     Try<double> bootTime = getBootTime();
     if (bootTime.isError()) {
