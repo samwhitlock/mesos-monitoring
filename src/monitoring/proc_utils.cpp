@@ -17,9 +17,10 @@
  */
 
 #include <asm/param.h>
+#include <pthread.h>
+
 #include <fstream>
 #include <list>
-#include <pthread.h>
 #include <string>
 
 #include "common/foreach.hpp"
