@@ -55,7 +55,7 @@ void initCachedBootTime() {
       }
     }
   }
-  cachedBootTime = Try<double>::error("unable to read boot time from proc");
+  cachedBootTime = Try<double>::error("Failed to read boot time from proc");
 }
 
 // Converts time in jiffies to milliseconds.
@@ -88,6 +88,9 @@ Try<ProcessStats> getProcessStats(const string& pid)
                 >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
                 >> cstime >> priority >> nice >> num_threads >> itrealvalue
                 >> starttime >> vsize >> rss;
+    if (!pStatFile) {
+      return Try<ProcessStats>::error("Failed to read ProcessStats from proc");
+    }
     Try<double> bootTime = getBootTime();
     if (bootTime.isError()) {
       return Try<ProcessStats>::error(bootTime.error());
