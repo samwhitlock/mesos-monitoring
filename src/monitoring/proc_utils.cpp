@@ -40,7 +40,8 @@ namespace monitoring {
 static pthread_once_t isBootTimeInitialized = PTHREAD_ONCE_INIT;
 static Try<double> cachedBootTime = Try<double>::error("not initialized");
 
-void initCachedBootTime() {
+void initCachedBootTime()
+{
   string line;
   ifstream statFile("/proc/stat");
   if (statFile.is_open()) {
@@ -121,7 +122,8 @@ Try<double> getStartTime(const string& pid)
   }
 }
 
-Try<list<string> > getAllPids() {
+Try<list<string> > getAllPids()
+{
   list<string> pids = list<string>();
   foreach (const string& filename, utils::os::listdir("/proc")) {
     if (utils::numify<uint64_t>(filename).isSome()) {

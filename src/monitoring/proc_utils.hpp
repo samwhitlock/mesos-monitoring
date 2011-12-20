@@ -30,7 +30,8 @@ namespace mesos {
 namespace internal {
 namespace monitoring {
 
-struct ProcessStats {
+struct ProcessStats
+{
   std::string pid;
   std::string ppid;
   std::string pgrp;
