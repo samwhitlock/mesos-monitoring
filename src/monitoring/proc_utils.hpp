@@ -57,6 +57,7 @@ Try<double> getBootTime();
 // with the given PID.
 Try<double> getStartTime(const std::string& pid);
 
+
 // Retrieves the current system time (in milliseconds since epoch).
 inline double getCurrentTime()
 {
@@ -64,6 +65,7 @@ inline double getCurrentTime()
   gettimeofday(&ctime, NULL);
   return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
 }
+
 
 } // namespace monitoring {
 } // namespace internal {

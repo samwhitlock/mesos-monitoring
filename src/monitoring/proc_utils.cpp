@@ -40,6 +40,7 @@ namespace monitoring {
 static pthread_once_t isBootTimeInitialized = PTHREAD_ONCE_INIT;
 static Try<double> cachedBootTime = Try<double>::error("not initialized");
 
+
 void initCachedBootTime()
 {
   string line;
@@ -59,11 +60,13 @@ void initCachedBootTime()
   cachedBootTime = Try<double>::error("Failed to read boot time from proc");
 }
 
+
 // Converts time in jiffies to milliseconds.
 static inline double jiffiesToMillis(double jiffies)
 {
   return jiffies * 1000.0 / HZ;
 }
+
 
 // Converts time in system ticks (as defined by _SC_CLK_TCK, NOT CPU
 // clock ticks) to milliseconds.
@@ -71,6 +74,7 @@ static inline double ticksToMillis(double ticks)
 {
   return ticks * 1000.0 / sysconf(_SC_CLK_TCK);
 }
+
 
 Try<ProcessStats> getProcessStats(const string& pid)
 {
@@ -106,11 +110,13 @@ Try<ProcessStats> getProcessStats(const string& pid)
   }
 }
 
+
 Try<double> getBootTime()
 {
   pthread_once(&isBootTimeInitialized, initCachedBootTime);
   return cachedBootTime;
 }
+
 
 Try<double> getStartTime(const string& pid)
 {
@@ -121,6 +127,7 @@ Try<double> getStartTime(const string& pid)
     return pStats.get().startTime;
   }
 }
+
 
 Try<list<string> > getAllPids()
 {
@@ -136,6 +143,7 @@ Try<list<string> > getAllPids()
     return pids;
   }
 }
+
 
 } // namespace monitoring {
 } // namespace internal {
