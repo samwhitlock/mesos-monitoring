@@ -24,6 +24,7 @@
 #include <list>
 #include <string>
 
+#include "common/seconds.hpp"
 #include "common/try.hpp"
 
 namespace mesos {
@@ -32,13 +33,19 @@ namespace monitoring {
 
 struct ProcessStats
 {
-  std::string pid;
-  std::string ppid;
-  std::string pgrp;
-  std::string session;
-  double cpuTime;  // Total time in milliseconds.
-  double startTime; // Timestamp in milliseconds since epoch.
-  double memUsage; // Current RSS usage in bytes.
+  ProcessStats(std::string _pid, std::string _ppid, std::string _pgrp,
+      std::string _session, seconds _cpuTime, seconds _startTime,
+      double _memUsage) :
+    pid(_pid), ppid(_ppid), pgrp(_pgrp), session(_session), cpuTime(_cpuTime),
+    startTime(_startTime), memUsage(_memUsage) {}
+
+  const std::string pid;
+  const std::string ppid;
+  const std::string pgrp;
+  const std::string session;
+  const seconds cpuTime;  // Total cpu time used.
+  const seconds startTime; // Timestamp as time elapsed since epoch.
+  const double memUsage; // Current RSS usage in bytes.
 };
 
 // Reads from proc and returns a list of all processes running on the
@@ -50,12 +57,12 @@ Try<std::list<std::string> > getAllPids();
 // retrieved info.
 Try<ProcessStats> getProcessStats(const std::string& pid);
 
-// Retrieves the system boot time (in milliseconds since epoch).
-Try<double> getBootTime();
+// Retrieves the system boot time (in time since epoch).
+Try<seconds> getBootTime();
 
-// Retrieves the start time (in milliseconds since epoch) of the process
+// Retrieves the start time (in time since epoch) of the process
 // with the given PID.
-Try<double> getStartTime(const std::string& pid);
+Try<seconds> getStartTime(const std::string& pid);
 
 
 // Retrieves the current system time (in milliseconds since epoch).
@@ -63,7 +70,7 @@ inline double getCurrentTime()
 {
   timeval ctime;
   gettimeofday(&ctime, NULL);
-  return (ctime.tv_sec * 1000.0 + ctime.tv_usec / 1000.0);
+  return ctime.tv_sec + nanoseconds(ctime.tv_usec).secs();
 }
 
 

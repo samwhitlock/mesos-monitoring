@@ -24,9 +24,10 @@
 #include <string>
 
 #include "common/foreach.hpp"
+#include "common/seconds.hpp"
 #include "common/try.hpp"
 #include "common/utils.hpp"
-#include "proc_utils.hpp"
+#include "monitoring/proc_utils.hpp"
 
 using std::ifstream;
 using std::string;
@@ -38,7 +39,7 @@ namespace monitoring {
 
 // Code for initializing cached boot time.
 static pthread_once_t isBootTimeInitialized = PTHREAD_ONCE_INIT;
-static Try<double> cachedBootTime = Try<double>::error("not initialized");
+static Try<seconds> cachedBootTime = Try<seconds>::error("not initialized");
 
 
 void initCachedBootTime()
@@ -51,28 +52,28 @@ void initCachedBootTime()
       if (line.compare(0, 6, "btime ") == 0) {
         Try<double> bootTime = utils::numify<double>(line.substr(6));
         if (bootTime.isSome()) {
-          cachedBootTime = bootTime.get() * 1000.0;
+          cachedBootTime = seconds(bootTime.get());
           return;
         }
       }
     }
   }
-  cachedBootTime = Try<double>::error("Failed to read boot time from proc");
+  cachedBootTime = Try<seconds>::error("Failed to read boot time from proc");
 }
 
 
-// Converts time in jiffies to milliseconds.
-static inline double jiffiesToMillis(double jiffies)
+// Converts time in jiffies to seconds.
+static inline seconds jiffiesToSeconds(double jiffies)
 {
-  return jiffies * 1000.0 / HZ;
+  return seconds(jiffies / HZ);
 }
 
 
 // Converts time in system ticks (as defined by _SC_CLK_TCK, NOT CPU
 // clock ticks) to milliseconds.
-static inline double ticksToMillis(double ticks)
+static inline seconds ticksToSeconds(double ticks)
 {
-  return ticks * 1000.0 / sysconf(_SC_CLK_TCK);
+  return seconds(ticks / sysconf(_SC_CLK_TCK));
 }
 
 
@@ -81,48 +82,46 @@ Try<ProcessStats> getProcessStats(const string& pid)
   string procPath = "/proc/" + pid + "/stat";
   ifstream pStatFile(procPath.c_str());
   if (pStatFile.is_open()) {
-    ProcessStats pinfo;
     // Dummy vars for leading entries in stat that we don't care about.
     string comm, state, tty_nr, tpgid, flags, minflt, cminflt, majflt, cmajflt;
     string cutime, cstime, priority, nice, num_threads, itrealvalue, vsize;
     // These are the fields we want.
     double rss, utime, stime, starttime;
+    string pid, ppid, pgrp, session;
     // Parse all fields from stat.
-    pStatFile >> pinfo.pid >> comm >> state >> pinfo.ppid >> pinfo.pgrp
-                >> pinfo.session >> tty_nr >> tpgid >> flags >> minflt
-                >> cminflt >> majflt >> cmajflt >> utime >> stime >> cutime
-                >> cstime >> priority >> nice >> num_threads >> itrealvalue
-                >> starttime >> vsize >> rss;
+    pStatFile >> pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr >>
+                 tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt >>
+                 utime >> stime >> cutime >> cstime >> priority >> nice >>
+                 num_threads >> itrealvalue >> starttime >> vsize >> rss;
     if (!pStatFile) {
       return Try<ProcessStats>::error("Failed to read ProcessStats from proc");
     }
-    Try<double> bootTime = getBootTime();
+    Try<seconds> bootTime = getBootTime();
     if (bootTime.isError()) {
       return Try<ProcessStats>::error(bootTime.error());
     }
-    pinfo.startTime = bootTime.get() + jiffiesToMillis(starttime);
-    // TODO(adegtiar): consider doing something more sophisticated.
-    pinfo.memUsage = rss * sysconf(_SC_PAGE_SIZE);
-    pinfo.cpuTime = ticksToMillis(utime + stime);
-    return pinfo;
+    // TODO(adegtiar): consider doing something more sophisticated for mem.
+    return ProcessStats(pid, ppid, pgrp, session, seconds(utime + stime),
+        seconds(bootTime.get().value + jiffiesToSeconds(starttime).value),
+        rss * sysconf(_SC_PAGE_SIZE));
   } else {
     return Try<ProcessStats>::error("Cannot open " + procPath + " for stats");
   }
 }
 
 
-Try<double> getBootTime()
+Try<seconds> getBootTime()
 {
   pthread_once(&isBootTimeInitialized, initCachedBootTime);
   return cachedBootTime;
 }
 
 
-Try<double> getStartTime(const string& pid)
+Try<seconds> getStartTime(const string& pid)
 {
   Try<ProcessStats> pStats = getProcessStats(pid);
   if (pStats.isError()) {
-    return Try<double>::error(pStats.error());
+    return Try<seconds>::error(pStats.error());
   } else {
     return pStats.get().startTime;
   }
