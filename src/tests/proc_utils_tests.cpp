@@ -21,8 +21,9 @@
 #include <string>
 #include <list>
 
-#include "common/utils.hpp"
+#include "common/seconds.hpp"
 #include "common/try.hpp"
+#include "common/utils.hpp"
 #include "monitoring/proc_utils.hpp"
 
 using std::find;
@@ -39,33 +40,35 @@ void expectUInt(const string& str)
 }
 
 // A sanity check for a process start time.
-void verifyStartTime(const double& startTime)
+void verifyStartTime(const seconds& startTime)
 {
-  EXPECT_GT(startTime, 0.0);
-  EXPECT_LT(startTime, getCurrentTime());
-  Try<double> bootTime = getBootTime();
+  EXPECT_GT(startTime.value, 0.0);
+  // Sleep to ensure time difference won't be lost in rounding.
+  sleep(1);
+  EXPECT_LT(startTime.value, getCurrentTime());
+  Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
-  EXPECT_GT(startTime, getBootTime().get());
+  EXPECT_GT(startTime.value, getBootTime().get().value);
 }
 
 TEST(ProcUtilsTest, BootTime)
 {
-  Try<double> bootTime = getBootTime();
+  Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
-  EXPECT_GT(bootTime.get(), 0.0);
+  EXPECT_GT(bootTime.get().value, 0.0);
 }
 
 TEST(ProcUtilsTest, CurrentTime)
 {
   EXPECT_GT(getCurrentTime(), 0.0);
-  Try<double> bootTime = getBootTime();
+  Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
-  EXPECT_GT(getCurrentTime(), bootTime.get());
+  EXPECT_GT(getCurrentTime(), bootTime.get().value);
 }
 
 TEST(ProcUtilsTest, StartTime)
 {
-  Try<double> startTime = getStartTime("self");
+  Try<seconds> startTime = getStartTime("self");
   ASSERT_FALSE(startTime.isError());
   verifyStartTime(startTime.get());
 }
@@ -80,7 +83,7 @@ TEST(ProcUtilsTest, ProcessStats)
   expectUInt(processStats.pgrp);
   expectUInt(processStats.session);
   verifyStartTime(processStats.startTime);
-  EXPECT_GT(processStats.cpuTime, 0.0);
+  EXPECT_GT(processStats.cpuTime.value, 0.0);
   EXPECT_GT(processStats.memUsage, 0.0);
 }
 
