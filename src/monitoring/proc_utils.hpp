@@ -21,7 +21,6 @@
 
 #include <sys/time.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include <list>
 #include <string>
@@ -51,7 +50,7 @@ struct ProcessStats
 
 // Reads from proc and returns a list of all processes running on the
 // system.
-Try<std::list<std::string> > getAllPids();
+Try<std::list<pid_t> > getAllPids();
 
 // Retrieves resource usage and metadata for a process. Takes the PID of
 // the process to query and returns a ProcessStats struct containing the

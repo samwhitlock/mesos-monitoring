@@ -18,6 +18,7 @@
 
 #include <asm/param.h>
 #include <pthread.h>
+#include <sys/types.h>
 
 #include <fstream>
 #include <list>
@@ -101,7 +102,7 @@ Try<ProcessStats> getProcessStats(const pid_t& pid)
       return Try<ProcessStats>::error(bootTime.error());
     }
     // TODO(adegtiar): consider doing something more sophisticated for mem.
-    return ProcessStats(pid, ppid, pgrp, sid, seconds(utime + stime),
+    return ProcessStats(_pid, ppid, pgrp, sid, seconds(utime + stime),
         seconds(bootTime.get().value + jiffiesToSeconds(starttime).value),
         rss * sysconf(_SC_PAGE_SIZE));
   } else {
@@ -120,26 +121,27 @@ Try<seconds> getBootTime()
 Try<seconds> getStartTime(const pid_t& pid)
 {
   Try<ProcessStats> pStats = getProcessStats(pid);
-  if (pStats.isError()) {
-    return Try<seconds>::error(pStats.error());
-  } else {
+  if (pStats.isSome()) {
     return pStats.get().startTime;
+  } else {
+    return Try<seconds>::error(pStats.error());
   }
 }
 
 
-Try<list<string> > getAllPids()
+Try<list<pid_t> > getAllPids()
 {
-  list<string> pids = list<string>();
+  list<pid_t> pids = list<string>();
   foreach (const string& filename, utils::os::listdir("/proc")) {
-    if (utils::numify<uint64_t>(filename).isSome()) {
-      pids.push_back(filename);
+    Try<pid_t> next_pid = utils::numify<pid_t>(filename);
+    if (next_pid.isSome()) {
+      pids.push_back(next_pid.get());
     }
   }
-  if (pids.empty()) {
-    return Try<list<string> >::error("Failed to retrieve pids from proc");
-  } else {
+  if (!pids.empty()) {
     return pids;
+  } else {
+    return Try<list<string> >::error("Failed to retrieve pids from proc");
   }
 }
 
