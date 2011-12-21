@@ -51,6 +51,7 @@ void verifyStartTime(const seconds& startTime)
   EXPECT_GT(startTime.value, getBootTime().get().value);
 }
 
+
 TEST(ProcUtilsTest, BootTime)
 {
   Try<seconds> bootTime = getBootTime();
@@ -59,12 +60,14 @@ TEST(ProcUtilsTest, BootTime)
   EXPECT_LT(bootTime.get().value, Clock::now());
 }
 
+
 TEST(ProcUtilsTest, StartTime)
 {
   Try<seconds> startTime = getStartTime(getpid());
   ASSERT_FALSE(startTime.isError());
   verifyStartTime(startTime.get());
 }
+
 
 TEST(ProcUtilsTest, ProcessStats)
 {
@@ -78,6 +81,7 @@ TEST(ProcUtilsTest, ProcessStats)
   EXPECT_GT(processStats.cpuTime.value, 0.0);
   EXPECT_GT(processStats.memUsage, 0.0);
 }
+
 
 TEST(ProcUtilsTest, GetAllPids)
 {
