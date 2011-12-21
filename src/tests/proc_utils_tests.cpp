@@ -41,11 +41,6 @@ namespace mesos {
 namespace internal {
 namespace monitoring {
 
-void expectUInt(const string& str)
-{
-  EXPECT_TRUE(utils::numify<uint64_t>(str).isSome());
-}
-
 // A sanity check for a process start time.
 void verifyStartTime(const seconds& startTime)
 {
@@ -86,20 +81,15 @@ TEST(ProcUtilsTest, ProcessStats)
 
 TEST(ProcUtilsTest, GetAllPids)
 {
-  pid_t _mPid = getpid();
-  string mPid = utils::stringify(_mPid);
+  pid_t mPid = getpid();
 
-  Try<list<string> > allPidsTry = getAllPids();
+  Try<list<pid_t> > allPidsTry = getAllPids();
   ASSERT_FALSE(allPidsTry.isError());
-  list<string> allPids = allPidsTry.get();
+  list<pid_t> allPids = allPidsTry.get();
 
   ASSERT_FALSE(allPids.empty());
   // Make sure the list contains the pid of the current process.
   EXPECT_NE(find(allPids.begin(), allPids.end(), mPid), allPids.end());
-  // Make sure all pids are natural numbers.
-  foreach (const string& pid, allPids) {
-    expectUInt(pid);
-  }
 }
 
 } // namespace monitoring {
