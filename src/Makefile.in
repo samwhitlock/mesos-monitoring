@@ -136,7 +136,7 @@ endif
 MONITORING_OBJ =
 
 ifeq ($(OS_NAME),linux)
-  MONITORING_OBJ += monitoring/proc_utils.o
+  MONITORING_OBJ += monitoring/linux/proc_utils.o
 endif
 
 SLAVE_OBJ += $(MONITORING_OBJ)
@@ -264,6 +264,10 @@ SCRIPT_FILES = $(BINDIR)/killtree.sh
 # automagically by configure.
 OBJ_DIRECTORIES = common configurator detector exec launcher local log	\
                   master messages sched slave zookeeper monitoring
+
+ifeq ($(OS_NAME),linux)
+  OBJ_DIRECTORIES += monitoring/linux
+endif
 
 WEBUI_DIRECTORIES = $(BINDIR)/webui/common $(BINDIR)/webui/master	\
                     $(BINDIR)/webui/slave $(BINDIR)/webui/static
