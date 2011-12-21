@@ -20,6 +20,8 @@
 #define __PROC_UTILS_HPP__
 
 #include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <list>
 #include <string>
@@ -55,14 +57,14 @@ Try<std::list<std::string> > getAllPids();
 // Retrieves resource usage and metadata for a process. Takes the PID of
 // the process to query and returns a ProcessStats struct containing the
 // retrieved info.
-Try<ProcessStats> getProcessStats(const std::string& pid);
+Try<ProcessStats> getProcessStats(const pid_t& pid);
 
 // Retrieves the system boot time (in time since epoch).
 Try<seconds> getBootTime();
 
 // Retrieves the start time (in time since epoch) of the process
 // with the given PID.
-Try<seconds> getStartTime(const std::string& pid);
+Try<seconds> getStartTime(const pid_t& pid);
 
 } // namespace monitoring {
 } // namespace internal {
