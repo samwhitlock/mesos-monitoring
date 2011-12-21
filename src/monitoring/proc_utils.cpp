@@ -131,7 +131,7 @@ Try<seconds> getStartTime(const pid_t& pid)
 
 Try<list<pid_t> > getAllPids()
 {
-  list<pid_t> pids = list<string>();
+  list<pid_t> pids = list<pid_t>();
   foreach (const string& filename, utils::os::listdir("/proc")) {
     Try<pid_t> next_pid = utils::numify<pid_t>(filename);
     if (next_pid.isSome()) {
@@ -141,10 +141,9 @@ Try<list<pid_t> > getAllPids()
   if (!pids.empty()) {
     return pids;
   } else {
-    return Try<list<string> >::error("Failed to retrieve pids from proc");
+    return Try<list<pid_t> >::error("Failed to retrieve pids from proc");
   }
 }
-
 
 } // namespace monitoring {
 } // namespace internal {
