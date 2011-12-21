@@ -17,6 +17,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <process/process.hpp>
 
 #include <algorithm>
@@ -63,14 +66,14 @@ TEST(ProcUtilsTest, BootTime)
 
 TEST(ProcUtilsTest, StartTime)
 {
-  Try<seconds> startTime = getStartTime("self");
+  Try<seconds> startTime = getStartTime(getpid());
   ASSERT_FALSE(startTime.isError());
   verifyStartTime(startTime.get());
 }
 
 TEST(ProcUtilsTest, ProcessStats)
 {
-  Try<ProcessStats> tryProcessStats = getProcessStats("self");
+  Try<ProcessStats> tryProcessStats = getProcessStats(getpid());
   ASSERT_FALSE(tryProcessStats.isError());
   ProcessStats processStats = tryProcessStats.get();
   expectUInt(processStats.pid);
@@ -84,7 +87,7 @@ TEST(ProcUtilsTest, ProcessStats)
 
 TEST(ProcUtilsTest, GetAllPids)
 {
-  Try<ProcessStats> tryProcessStats = getProcessStats("self");
+  Try<ProcessStats> tryProcessStats = getProcessStats(getpid());
   ASSERT_FALSE(tryProcessStats.isError());
   string mPid = tryProcessStats.get().pid;
 
