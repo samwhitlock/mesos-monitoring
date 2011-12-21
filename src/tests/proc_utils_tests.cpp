@@ -73,13 +73,12 @@ TEST(ProcUtilsTest, StartTime)
 
 TEST(ProcUtilsTest, ProcessStats)
 {
-  Try<ProcessStats> tryProcessStats = getProcessStats(getpid());
+  pid_t mPid = getpid();
+  Try<ProcessStats> tryProcessStats = getProcessStats(mPid);
   ASSERT_FALSE(tryProcessStats.isError());
   ProcessStats processStats = tryProcessStats.get();
-  expectUInt(processStats.pid);
-  expectUInt(processStats.ppid);
-  expectUInt(processStats.pgrp);
-  expectUInt(processStats.session);
+
+  EXPECT_EQ(mPid, processStats.pid);
   verifyStartTime(processStats.startTime);
   EXPECT_GT(processStats.cpuTime.value, 0.0);
   EXPECT_GT(processStats.memUsage, 0.0);
@@ -87,13 +86,13 @@ TEST(ProcUtilsTest, ProcessStats)
 
 TEST(ProcUtilsTest, GetAllPids)
 {
-  Try<ProcessStats> tryProcessStats = getProcessStats(getpid());
-  ASSERT_FALSE(tryProcessStats.isError());
-  string mPid = tryProcessStats.get().pid;
+  pid_t _mPid = getpid();
+  string mPid = utils::stringify(_mPid);
 
   Try<list<string> > allPidsTry = getAllPids();
   ASSERT_FALSE(allPidsTry.isError());
   list<string> allPids = allPidsTry.get();
+
   ASSERT_FALSE(allPids.empty());
   // Make sure the list contains the pid of the current process.
   EXPECT_NE(find(allPids.begin(), allPids.end(), mPid), allPids.end());

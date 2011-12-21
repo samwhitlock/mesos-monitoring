@@ -35,16 +35,15 @@ namespace monitoring {
 
 struct ProcessStats
 {
-  ProcessStats(std::string _pid, std::string _ppid, std::string _pgrp,
-      std::string _session, seconds _cpuTime, seconds _startTime,
-      double _memUsage) :
-    pid(_pid), ppid(_ppid), pgrp(_pgrp), session(_session), cpuTime(_cpuTime),
+  ProcessStats(pid_t _pid, pid_t _ppid, pid_t _pgrp, pid_t _sid,
+      seconds _cpuTime, seconds _startTime, double _memUsage) :
+    pid(_pid), ppid(_ppid), pgrp(_pgrp), sid(_sid), cpuTime(_cpuTime),
     startTime(_startTime), memUsage(_memUsage) {}
 
-  const std::string pid;
-  const std::string ppid;
-  const std::string pgrp;
-  const std::string session;
+  const pid_t pid;
+  const pid_t ppid;
+  const pid_t pgrp;
+  const pid_t sid;
   const seconds cpuTime;  // Total cpu time used.
   const seconds startTime; // Timestamp as time elapsed since epoch.
   const double memUsage; // Current RSS usage in bytes.

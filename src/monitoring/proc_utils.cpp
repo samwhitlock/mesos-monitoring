@@ -79,11 +79,7 @@ static inline seconds ticksToSeconds(double ticks)
 
 Try<ProcessStats> getProcessStats(const pid_t& pid)
 {
-  Try<string> pid_name = utils::stringify(pid);
-  if (pid_name.isError()) {
-    return Try<ProcessStats>::error("Invalid pid: " + pid);
-  }
-  string procPath = "/proc/" + pid_name.get() + "/stat";
+  string procPath = "/proc/" + utils::stringify(pid) + "/stat";
   ifstream pStatFile(procPath.c_str());
   if (pStatFile.is_open()) {
     // Dummy vars for leading entries in stat that we don't care about.
@@ -91,9 +87,9 @@ Try<ProcessStats> getProcessStats(const pid_t& pid)
     string cutime, cstime, priority, nice, num_threads, itrealvalue, vsize;
     // These are the fields we want.
     double rss, utime, stime, starttime;
-    string _pid, ppid, pgrp, session;
+    pid_t _pid, ppid, pgrp, sid;
     // Parse all fields from stat.
-    pStatFile >> _pid >> comm >> state >> ppid >> pgrp >> session >> tty_nr >>
+    pStatFile >> _pid >> comm >> state >> ppid >> pgrp >> sid >> tty_nr >>
                  tpgid >> flags >> minflt >> cminflt >> majflt >> cmajflt >>
                  utime >> stime >> cutime >> cstime >> priority >> nice >>
                  num_threads >> itrealvalue >> starttime >> vsize >> rss;
@@ -105,7 +101,7 @@ Try<ProcessStats> getProcessStats(const pid_t& pid)
       return Try<ProcessStats>::error(bootTime.error());
     }
     // TODO(adegtiar): consider doing something more sophisticated for mem.
-    return ProcessStats(_pid, ppid, pgrp, session, seconds(utime + stime),
+    return ProcessStats(pid, ppid, pgrp, sid, seconds(utime + stime),
         seconds(bootTime.get().value + jiffiesToSeconds(starttime).value),
         rss * sysconf(_SC_PAGE_SIZE));
   } else {
