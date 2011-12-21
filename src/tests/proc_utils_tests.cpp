@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 
-#include <algorithm>
 #include <gtest/gtest.h>
+#include <process/process.hpp>
+
+#include <algorithm>
 #include <string>
 #include <list>
 
@@ -25,6 +27,8 @@
 #include "common/try.hpp"
 #include "common/utils.hpp"
 #include "monitoring/proc_utils.hpp"
+
+using process::Clock;
 
 using std::find;
 using std::string;
@@ -44,8 +48,8 @@ void verifyStartTime(const seconds& startTime)
 {
   EXPECT_GT(startTime.value, 0.0);
   // Sleep to ensure time difference won't be lost in rounding.
-  sleep(1);
-  EXPECT_LT(startTime.value, getCurrentTime());
+//  sleep(1);
+  EXPECT_LT(startTime.value, Clock::now());
   Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
   EXPECT_GT(startTime.value, getBootTime().get().value);
@@ -56,14 +60,7 @@ TEST(ProcUtilsTest, BootTime)
   Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
   EXPECT_GT(bootTime.get().value, 0.0);
-}
-
-TEST(ProcUtilsTest, CurrentTime)
-{
-  EXPECT_GT(getCurrentTime(), 0.0);
-  Try<seconds> bootTime = getBootTime();
-  ASSERT_FALSE(bootTime.isError());
-  EXPECT_GT(getCurrentTime(), bootTime.get().value);
+  EXPECT_LT(bootTime.get().value, Clock::now());
 }
 
 TEST(ProcUtilsTest, StartTime)
