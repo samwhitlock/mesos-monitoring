@@ -44,8 +44,11 @@ namespace monitoring {
 // A sanity check for a process start time.
 void verifyStartTime(const seconds& startTime)
 {
+  // Verify 0 < startTime < now.
   EXPECT_GT(startTime.value, 0.0);
   EXPECT_LT(startTime.value, Clock::now());
+
+  // Verify startTime > system boot time.
   Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
   EXPECT_GT(startTime.value, getBootTime().get().value);
@@ -56,6 +59,8 @@ TEST(ProcUtilsTest, BootTime)
 {
   Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
+
+  // Verify 0 < bootTime < now.
   EXPECT_GT(bootTime.get().value, 0.0);
   EXPECT_LT(bootTime.get().value, Clock::now());
 }
