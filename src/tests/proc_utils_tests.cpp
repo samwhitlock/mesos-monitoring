@@ -47,8 +47,6 @@ void expectUInt(const string& str)
 void verifyStartTime(const seconds& startTime)
 {
   EXPECT_GT(startTime.value, 0.0);
-  // Sleep to ensure time difference won't be lost in rounding.
-//  sleep(1);
   EXPECT_LT(startTime.value, Clock::now());
   Try<seconds> bootTime = getBootTime();
   ASSERT_FALSE(bootTime.isError());
