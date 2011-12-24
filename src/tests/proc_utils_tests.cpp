@@ -23,7 +23,6 @@
 #include <process/process.hpp>
 
 #include <algorithm>
-#include <string>
 #include <list>
 
 #include "common/seconds.hpp"
