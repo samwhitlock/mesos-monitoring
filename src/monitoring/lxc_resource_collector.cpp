@@ -17,15 +17,20 @@
  */
 
 #include <list>
+
 #include <sys/time.h>
 
-#include "lxc_resource_collector.hpp"
+#include <process/process.hpp>
 
-#include "monitoring/proc_utils.hpp"
+#include "monitoring/linux/proc_utils.hpp"
+#include "monitoring/lxc_resource_collector.hpp"
 
 #include "common/utils.hpp"
 #include "common/resources.hpp"
+#include "common/seconds.hpp"
 #include "mesos/mesos.hpp"
+
+using process::Clock;
 
 namespace mesos {
 namespace internal {
@@ -47,10 +52,10 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
 {
   if (previousTimestamp == -1.0) {
     // TODO(sam): Make this handle the Try of the getStartTime.
-    previousTimestamp = getContainerStartTime().get();
+    previousTimestamp = getContainerStartTime().get().value;
   }
   
-  double asMillisecs = getCurrentTime();
+  double asMillisecs = Clock::now();
 
   Try<double> cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
 
@@ -103,12 +108,12 @@ Try<double> LxcResourceCollector::getControlGroupDoubleValue(const std::string& 
   }
 }
 
-Try<double> LxcResourceCollector::getContainerStartTime() const
+Try<seconds> LxcResourceCollector::getContainerStartTime() const
 {
   using namespace std;
-  Try<list<string> > allPidsTry = getAllPids();
+  Try<list<pid_t> > allPidsTry = getAllPids();
   if (allPidsTry.isError()) {
-    return Try<double>::error(allPidsTry.error());
+    return Try<seconds>::error(allPidsTry.error());
   }
   // TODO does this need to be sorted?
   return getStartTime(allPidsTry.get().front());

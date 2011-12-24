@@ -19,9 +19,10 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <process/process.hpp>
+
 #include "common/try.hpp"
 #include "common/resources.hpp"
-#include "monitoring/proc_utils.hpp"
 #include "monitoring/resource_collector.hpp"
 #include "monitoring/resource_monitor.hpp"
 
@@ -34,6 +35,7 @@ using namespace mesos::internal;
 using namespace mesos::internal::monitoring;
 
 using testing::Return;
+using process::Clock;
 
 class MockCollector : public ResourceCollector
 {
@@ -68,7 +70,7 @@ TEST(ResourceMonitorTest, MonitorsCorrectly)
   Resources r = ur.resources;
 
   EXPECT_EQ(duration, ur.duration);
-  EXPECT_FALSE(ur.timestamp > getCurrentTime());//To fix roundoff errors
+  EXPECT_FALSE(ur.timestamp > Clock::now());//To fix roundoff errors
 
   EXPECT_EQ(memoryUsage, r.get("mem_usage", Resource::Scalar()).value());
   EXPECT_EQ(difference, r.get("cpu_usage", Resource::Scalar()).value());

@@ -17,33 +17,37 @@
  */
 
 #include <assert.h>
+
 #include <iostream>
 #include <list>
-#include <string>
+
+#include <process/process.hpp>
 
 #include "common/foreach.hpp"
 #include "common/resources.hpp"
+#include "common/seconds.hpp"
 #include "common/try.hpp"
-#include "monitoring/proc_resource_collector.hpp"
-#include "proc_utils.hpp"
 
+#include "monitoring/linux/proc_resource_collector.hpp"
+#include "monitoring/linux/proc_utils.hpp"
+
+using process::Clock;
 using std::ios_base;
-using std::string;
 using std::list;
 
 namespace mesos {
 namespace internal {
 namespace monitoring {
 
-inline Try<double> initialTryValue()
+inline Try<seconds> initialTryValue()
 {
-  return Try<double>::error("initial value");
+  return Try<seconds>::error("initial value");
 }
 
-ProcResourceCollector::ProcResourceCollector(const string& _rootPid) :
+ProcResourceCollector::ProcResourceCollector(pid_t _rootPid) :
   rootPid(_rootPid),
   isInitialized(false),
-  currentMemUsage(initialTryValue()),
+  currentMemUsage(Try<double>::error("initial value")),
   currentCpuUsage(initialTryValue()),
   currentTimestamp(initialTryValue()),
   prevCpuUsage(initialTryValue()),
@@ -60,8 +64,8 @@ Try<Rate> ProcResourceCollector::getCpuUsage()
 {
   if (currentCpuUsage.isSome() && currentTimestamp.isSome() &&
       prevCpuUsage.isSome() && prevTimestamp.isSome()) {
-    return Rate(currentTimestamp.get() - prevTimestamp.get(),
-        currentCpuUsage.get() - prevCpuUsage.get());
+    return Rate(currentTimestamp.get().value - prevTimestamp.get().value,
+        currentCpuUsage.get().value - prevCpuUsage.get().value);
   } else if (prevTimestamp.isError()) {
     // This only happens when process start time lookup fails. Might as
     // well report this first.
@@ -79,8 +83,8 @@ void ProcResourceCollector::collectUsage()
   Try<list<ProcessStats> > tryProcessTree = getProcessTreeStats();
   if (tryProcessTree.isError()) {
     currentMemUsage = Try<double>::error(tryProcessTree.error());
-    currentCpuUsage = Try<double>::error(tryProcessTree.error());
-    currentTimestamp = Try<double>::error(tryProcessTree.error());
+    currentCpuUsage = Try<seconds>::error(tryProcessTree.error());
+    currentTimestamp = Try<seconds>::error(tryProcessTree.error());
     return;
   }
   list<ProcessStats> processTree = tryProcessTree.get();
@@ -92,15 +96,16 @@ void ProcResourceCollector::collectUsage()
   // Sum up the current resource usage stats.
   double cpuUsageTicks, memUsage;
   aggregateResourceUsage(processTree, memUsage, cpuUsageTicks);
+  // TODO(adegtiar): do this via cast?
   currentMemUsage = Try<double>::some(memUsage);
-  currentCpuUsage = Try<double>::some(cpuUsageTicks);
-  currentTimestamp = Try<double>::some(getCurrentTime());
+  currentCpuUsage = Try<seconds>::some(seconds(cpuUsageTicks));
+  currentTimestamp = Try<seconds>::some(seconds(Clock::now()));
 }
 
 void ProcResourceCollector::updatePreviousUsage()
 {
   if (!isInitialized) {
-    prevCpuUsage = Try<double>::some(0);
+    prevCpuUsage = Try<seconds>::some(seconds(0));
     prevTimestamp = getStartTime(rootPid);
     isInitialized = true;
   } else if (currentMemUsage.isSome() && currentCpuUsage.isSome()) {
@@ -119,22 +124,22 @@ Try<list<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
     return Try<list<ProcessStats> >::error(tryRootStats.error());
   }
   ProcessStats rootProcess = tryRootStats.get();
-  Try<list<string> > allPidsTry = getAllPids();
+  Try<list<pid_t> > allPidsTry = getAllPids();
   if (allPidsTry.isError()) {
     return Try<list<ProcessStats> >::error(allPidsTry.error());
   }
-  list<string> allPids = allPidsTry.get();
+  list<pid_t> allPids = allPidsTry.get();
   // Attempt to add all process in the same tree by checking for:
   //   1) Direct child via match on ppid.
   //   2) Same process group as root.
   //   3) Same session as root.
-  foreach (const string& pid, allPids) {
+  foreach (pid_t pid, allPids) {
     Try<ProcessStats> tryNextProcess = getProcessStats(pid);
     if (tryNextProcess.isSome()) {
       ProcessStats nextProcess = tryNextProcess.get();
       if (nextProcess.ppid == rootProcess.ppid ||
           nextProcess.pgrp == rootProcess.pgrp ||
-          nextProcess.session == rootProcess.session) {
+          nextProcess.sid == rootProcess.sid) {
         processTree.push_back(nextProcess);
       }
     } // else process must have died in between calls.
@@ -151,7 +156,7 @@ void ProcResourceCollector::aggregateResourceUsage(
   cpuTotal = 0;
   foreach (const ProcessStats& pinfo, processes) {
     memTotal += pinfo.memUsage;
-    cpuTotal += pinfo.cpuTime;
+    cpuTotal += pinfo.cpuTime.value;
   }
 }
 

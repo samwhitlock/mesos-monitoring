@@ -19,7 +19,7 @@
 #ifndef __PROCESS_RESOURCE_COLLECTOR_HPP__
 #define __PROCESS_RESOURCE_COLLECTOR_HPP__
 
-#include <string>
+#include <sys/types.h>
 
 #include "monitoring/resource_collector.hpp"
 
@@ -35,7 +35,7 @@ public:
 
   // Creates a new ProcessResourceCollector appropriate for the current
   // system. If no monitor can be constructed, returns NULL.
-  static ProcessResourceCollector* create(const std::string& rootPid);
+  static ProcessResourceCollector* create(pid_t rootPid);
 
   virtual ~ProcessResourceCollector() {}
 };

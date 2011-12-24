@@ -21,11 +21,11 @@
 
 #include <iostream>
 #include <list>
-#include <string>
 
 #include "common/try.hpp"
+
 #include "monitoring/process_resource_collector.hpp"
-#include "proc_utils.hpp"
+#include "monitoring/linux/proc_utils.hpp"
 
 namespace mesos {
 namespace internal {
@@ -37,7 +37,7 @@ namespace monitoring {
 class ProcResourceCollector : public ProcessResourceCollector
 {
 public:
-  ProcResourceCollector(const std::string& rootPid);
+  ProcResourceCollector(pid_t rootPid);
 
   virtual ~ProcResourceCollector();
 
@@ -48,17 +48,17 @@ public:
   virtual Try<Rate> getCpuUsage();
 
 private:
-  const std::string rootPid;
+  const pid_t rootPid;
 
   Try<double> currentMemUsage;
 
-  Try<double> prevCpuUsage;
+  Try<seconds> prevCpuUsage;
 
-  Try<double> currentCpuUsage;
+  Try<seconds> currentCpuUsage;
 
-  Try<double> prevTimestamp;
+  Try<seconds> prevTimestamp;
 
-  Try<double> currentTimestamp;
+  Try<seconds> currentTimestamp;
 
   bool isInitialized;
 

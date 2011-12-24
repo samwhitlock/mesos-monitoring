@@ -16,21 +16,19 @@
  * limitations under the license.
  */
 
-#include <string>
+#include <sys/types.h>
 
-#if defined(__linux__) || defined(__sun__)
-#include "monitoring/proc_resource_collector.hpp"
+#ifdef __linux__
+#include "monitoring/linux/proc_resource_collector.hpp"
 #endif
 
 #include "monitoring/process_resource_collector.hpp"
-
-using std::string;
 
 namespace mesos {
 namespace internal {
 namespace monitoring {
 
-ProcessResourceCollector* ProcessResourceCollector::create(const string& rootPid)
+ProcessResourceCollector* ProcessResourceCollector::create(pid_t rootPid)
 {
 #ifdef __linux__
   return new ProcResourceCollector(rootPid);

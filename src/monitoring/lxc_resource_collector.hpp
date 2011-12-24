@@ -21,7 +21,8 @@
 
 #include <string>
 
-#include "resource_collector.hpp"
+#include "common/seconds.hpp"
+#include "monitoring/resource_collector.hpp"
 
 namespace mesos {
 namespace internal {
@@ -47,7 +48,7 @@ protected:
 
   // gets the approximate start time for the container
   // used initial call of collectUsage when no previous data is available
-  Try<double> getContainerStartTime() const;
+  Try<seconds> getContainerStartTime() const;
 };
 
 } // namespace monitoring {

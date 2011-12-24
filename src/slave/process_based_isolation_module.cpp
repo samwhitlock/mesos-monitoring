@@ -120,7 +120,7 @@ void ProcessBasedIsolationModule::launchExecutor(
     infos[frameworkId][executorId]->pid = pid;
 
     // Start up the resource monitor.
-    ProcessResourceCollector* prc = ProcessResourceCollector::create(stringify(pid));
+    ProcessResourceCollector* prc = ProcessResourceCollector::create(pid);
     if (prc != NULL) {
       info->resourceMonitor = new ResourceMonitor(prc);
     }

@@ -18,8 +18,11 @@
 
 #include <glog/logging.h>
 
-#include "proc_utils.hpp"
-#include "resource_monitor.hpp"
+#include <process/process.hpp>
+
+#include "monitoring/resource_monitor.hpp"
+
+using process::Clock;
 
 namespace mesos {
 namespace internal {
@@ -38,7 +41,7 @@ ResourceMonitor::~ResourceMonitor()
 Try<UsageReport> ResourceMonitor::collectUsage()
 {
   Resources resources;
-  double now = getCurrentTime();
+  double now = Clock::now();
   double duration = 0;
 
   collector->collectUsage();
