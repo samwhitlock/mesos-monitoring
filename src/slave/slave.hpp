@@ -26,6 +26,7 @@
 #include "slave/http.hpp"
 #include "slave/isolation_module.hpp"
 
+#include "common/attributes.hpp"
 #include "common/resources.hpp"
 #include "common/hashmap.hpp"
 #include "common/type_utils.hpp"
@@ -167,6 +168,7 @@ private:
   UPID master;
 
   Resources resources;
+  Attributes attributes;
 
   hashmap<FrameworkID, Framework*> frameworks;
 

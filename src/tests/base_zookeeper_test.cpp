@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <signal.h>
 
 #include <queue>
@@ -10,12 +28,13 @@
 
 #include "common/lock.hpp"
 
+#include "jvm/jvm.hpp"
+
 #include "tests/base_zookeeper_test.hpp"
-#include "tests/jvm.hpp"
 #include "tests/utils.hpp"
 #include "tests/zookeeper_server.hpp"
 
-using mesos::internal::test::mesosRoot;
+using mesos::internal::test::mesosSourceDirectory;
 using std::tr1::bind;
 using std::tr1::function;
 
@@ -58,7 +77,7 @@ void BaseZooKeeperTest::SetUpTestCase()
   if (singleton == NULL) {
     std::vector<std::string> opts;
 
-    std::string zkHome = mesosRoot + "/third_party/zookeeper-3.3.1";
+    std::string zkHome = mesosSourceDirectory + "/third_party/zookeeper-3.3.1";
     std::string classpath = "-Djava.class.path=" +
         zkHome + "/zookeeper-3.3.1.jar:" +
         zkHome + "/lib/log4j-1.2.15.jar";

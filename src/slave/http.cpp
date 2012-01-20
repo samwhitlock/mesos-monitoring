@@ -49,9 +49,9 @@ namespace slave {
 JSON::Object model(const Resources& resources)
 {
   // TODO(benh): Add all of the resources.
-  Resource::Scalar none;
-  Resource::Scalar cpus = resources.get("cpus", none);
-  Resource::Scalar mem = resources.get("mem", none);
+  Value::Scalar none;
+  Value::Scalar cpus = resources.get("cpus", none);
+  Value::Scalar mem = resources.get("mem", none);
 
   JSON::Object object;
   object.values["cpus"] = cpus.value();
@@ -174,7 +174,7 @@ Promise<HttpResponse> stats(
   JSON::render(out, object);
 
   HttpOKResponse response;
-  response.headers["Content-Type"] = "text/x-json";
+  response.headers["Content-Type"] = "application/json";
   response.headers["Content-Length"] = utils::stringify(out.str().size());
   response.body = out.str().data();
   return response;
@@ -209,7 +209,7 @@ Promise<HttpResponse> state(
   JSON::render(out, object);
 
   HttpOKResponse response;
-  response.headers["Content-Type"] = "text/x-json";
+  response.headers["Content-Type"] = "application/json";
   response.headers["Content-Length"] = utils::stringify(out.str().size());
   response.body = out.str().data();
   return response;

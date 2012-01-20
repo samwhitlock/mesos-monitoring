@@ -263,6 +263,8 @@ private:
 MesosExecutorDriver::MesosExecutorDriver(Executor* _executor)
   : executor(_executor), state(INITIALIZED), process(NULL)
 {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
   // Create mutex and condition variable
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
@@ -380,7 +382,7 @@ Status MesosExecutorDriver::start()
 }
 
 
-Status MesosExecutorDriver::stop(bool failover)
+Status MesosExecutorDriver::stop()
 {
   Lock lock(&mutex);
 
@@ -392,9 +394,7 @@ Status MesosExecutorDriver::stop(bool failover)
 
   CHECK(process != NULL);
 
-  if (!failover) {
-    terminate(process);
-  }
+  terminate(process);
 
   state = STOPPED;
   pthread_cond_signal(&cond);

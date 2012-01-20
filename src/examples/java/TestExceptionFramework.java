@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,15 +54,28 @@ public class TestExceptionFramework {
     public void error(SchedulerDriver driver, int code, String message) {}
   }
 
+  private static void usage() {
+    String name = TestExceptionFramework.class.getName();
+    System.err.println("Usage: " + name + " master");
+  }
+
   public static void main(String[] args) throws Exception {
-    ExecutorInfo executorInfo;
+    if (args.length != 1) {
+      usage();
+      System.exit(1);
+    }
 
-    File file = new File("./test_executor");
-    executorInfo = ExecutorInfo.newBuilder()
-                     .setExecutorId(ExecutorID.newBuilder().setValue("default").build())
-                     .setUri(file.getCanonicalPath())
-                     .build();
+    ExecutorInfo executorInfo = ExecutorInfo.newBuilder()
+      .setExecutorId(ExecutorID.newBuilder().setValue("default").build())
+      .setUri(new File("./test-executor").getCanonicalPath())
+      .build();
 
-    new MesosSchedulerDriver(new MyScheduler(), "Exception Framework", executorInfo, args[0]).run();
+    MesosSchedulerDriver driver = new MesosSchedulerDriver(
+        new MyScheduler(),
+        "Exception Framework",
+        executorInfo,
+        args[0]);
+
+    System.exit(driver.run() == Status.OK ? 0 : 1);
   }
 }

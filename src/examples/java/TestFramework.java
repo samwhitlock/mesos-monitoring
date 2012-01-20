@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,15 +64,15 @@ public class TestFramework {
             .setSlaveId(offer.getSlaveId())
             .addResources(Resource.newBuilder()
                           .setName("cpus")
-                          .setType(Resource.Type.SCALAR)
-                          .setScalar(Resource.Scalar.newBuilder()
+                          .setType(Value.Type.SCALAR)
+                          .setScalar(Value.Scalar.newBuilder()
                                      .setValue(1)
                                      .build())
                           .build())
             .addResources(Resource.newBuilder()
                           .setName("mem")
-                          .setType(Resource.Type.SCALAR)
-                          .setScalar(Resource.Scalar.newBuilder()
+                          .setType(Value.Type.SCALAR)
+                          .setScalar(Value.Scalar.newBuilder()
                                      .setValue(128)
                                      .build())
                           .build())
@@ -111,29 +111,38 @@ public class TestFramework {
     }
   }
 
+  private static void usage() {
+    String name = TestMultipleExecutorsFramework.class.getName();
+    System.err.println("Usage: " + name + " master <tasks>");
+  }
+
   public static void main(String[] args) throws Exception {
     if (args.length < 1 || args.length > 2) {
-      System.out.println("Invalid use: please specify a master");
-    } else {
-      ExecutorInfo executorInfo;
-
-      File file = new File("./test_executor");
-      executorInfo = ExecutorInfo.newBuilder()
-                       .setExecutorId(ExecutorID.newBuilder().setValue("default").build())
-                       .setUri(file.getCanonicalPath())
-                       .build();
-
-      if (args.length == 1) {
-        new MesosSchedulerDriver(new MyScheduler(),
-                                 "Java test framework",
-                                 executorInfo,
-                                 args[0]).run();
-      } else {
-        new MesosSchedulerDriver(new MyScheduler(Integer.parseInt(args[1])),
-                                 "Java test framework",
-                                 executorInfo,
-                                 args[0]).run();
-      }
+      usage();
+      System.exit(1);
     }
+
+    ExecutorInfo executorInfo = ExecutorInfo.newBuilder()
+      .setExecutorId(ExecutorID.newBuilder().setValue("default").build())
+      .setUri(new File("./test-executor").getCanonicalPath())
+      .build();
+
+    MesosSchedulerDriver driver;
+
+    if (args.length == 1) {
+      driver = new MesosSchedulerDriver(
+          new MyScheduler(),
+          "Java test framework",
+          executorInfo,
+          args[0]);
+    } else {
+      driver = new MesosSchedulerDriver(
+          new MyScheduler(Integer.parseInt(args[1])),
+          "Java test framework",
+          executorInfo,
+          args[0]);
+    }
+
+    System.exit(driver.run() == Status.OK ? 0 : 1);
   }
 }

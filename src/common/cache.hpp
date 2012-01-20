@@ -1,5 +1,23 @@
-#ifndef __LOG_CACHE_HPP__
-#define __LOG_CACHE_HPP__
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef __CACHE_HPP__
+#define __CACHE_HPP__
 
 #include <functional>
 #include <iostream>
@@ -10,31 +28,28 @@
 
 #include "common/option.hpp"
 
-
-namespace mesos { namespace internal { namespace log {
-
 // Forward declaration.
 template <typename Key, typename Value>
-class Cache;
+class cache;
 
 // Outputs the key/value pairs from least to most-recently used.
 template <typename Key, typename Value>
 std::ostream& operator << (
     std::ostream& stream,
-    const Cache<Key, Value>& c);
+    const cache<Key, Value>& c);
 
 
 // Provides a least-recently used (LRU) cache of some predefined
 // capacity. A "write" and a "read" both count as uses.
 template <typename Key, typename Value>
-class Cache
+class cache
 {
 public:
   typedef std::list<Key> list;
   typedef std::tr1::unordered_map<
     Key, std::pair<Value, typename list::iterator> > map;
 
-  explicit Cache(int _capacity) : capacity(_capacity) {}
+  explicit cache(int _capacity) : capacity(_capacity) {}
 
   void put(const Key& key, const Value& value)
   {
@@ -61,13 +76,13 @@ public:
 
 private:
   // Not copyable, not assignable.
-  Cache(const Cache&);
-  Cache& operator = (const Cache&);
+  cache(const cache&);
+  cache& operator = (const cache&);
 
   // Give the operator access to our internals.
   friend std::ostream& operator << <>(
       std::ostream& stream,
-      const Cache<Key, Value>& c);
+      const cache<Key, Value>& c);
 
   // Insert key/value into the cache.
   void insert(const Key& key, const Value& value)
@@ -116,19 +131,16 @@ private:
 template <typename Key, typename Value>
 std::ostream& operator << (
     std::ostream& stream,
-    const Cache<Key, Value>& c)
+    const cache<Key, Value>& c)
 {
-  typename Cache<Key, Value>::list::const_iterator i1;
+  typename cache<Key, Value>::list::const_iterator i1;
   for (i1 = c.keys.begin(); i1 != c.keys.end(); i1++) {
     stream << *i1 << ": ";
-    typename Cache<Key, Value>::map::const_iterator i2;
+    typename cache<Key, Value>::map::const_iterator i2;
     i2 = c.values.find(*i1);
     CHECK(i2 != c.values.end());
     stream << *i2 << std::endl;
   }
 }
 
-
-}}} // namespace mesos { namespace internal { namespace log {
-
-#endif // __LOG_CACHE_HPP__
+#endif // __CACHE_HPP__

@@ -219,7 +219,7 @@ void LxcIsolationModule::launchExecutor(
     }
 
     // Determine path for mesos-launcher from Mesos home directory.
-    string path = conf.get("home", ".") + "/bin/mesos-launcher";
+    string path = conf.get("launcher_dir", MESOS_LIBEXECDIR) + "/mesos-launcher";
     args[i++] = path.c_str();
     args[i++] = NULL;
 
@@ -299,7 +299,7 @@ void LxcIsolationModule::resourcesChanged(
   string property;
   uint64_t value;
 
-  double cpu = resources.get("cpu", Resource::Scalar()).value();
+  double cpu = resources.get("cpu", Value::Scalar()).value();
   int32_t cpu_shares = max(CPU_SHARES_PER_CPU * (int32_t) cpu, MIN_CPU_SHARES);
 
   property = "cpu.shares";
@@ -311,7 +311,7 @@ void LxcIsolationModule::resourcesChanged(
     return;
   }
 
-  double mem = resources.get("mem", Resource::Scalar()).value();
+  double mem = resources.get("mem", Value::Scalar()).value();
   int64_t limit_in_bytes = max((int64_t) mem, MIN_MEMORY_MB) * 1024LL * 1024LL;
 
   property = "memory.limit_in_bytes";
@@ -408,7 +408,7 @@ vector<string> LxcIsolationModule::getControlGroupOptions(
 
   std::ostringstream out;
 
-  double cpu = resources.get("cpu", Resource::Scalar()).value();
+  double cpu = resources.get("cpu", Value::Scalar()).value();
   int32_t cpu_shares = max(CPU_SHARES_PER_CPU * (int32_t) cpu, MIN_CPU_SHARES);
 
   options.push_back("-s");
@@ -417,7 +417,7 @@ vector<string> LxcIsolationModule::getControlGroupOptions(
 
   out.str("");
 
-  double mem = resources.get("mem", Resource::Scalar()).value();
+  double mem = resources.get("mem", Value::Scalar()).value();
   int64_t limit_in_bytes = max((int64_t) mem, MIN_MEMORY_MB) * 1024LL * 1024LL;
 
   options.push_back("-s");

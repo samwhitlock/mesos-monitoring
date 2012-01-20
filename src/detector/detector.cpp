@@ -29,14 +29,13 @@
 #include "common/fatal.hpp"
 #include "common/foreach.hpp"
 
-#ifdef WITH_ZOOKEEPER
-#include "zookeeper/zookeeper.hpp"
-#endif
+#include "detector/detector.hpp"
+#include "detector/url_processor.hpp"
 
 #include "messages/messages.hpp"
 
-#include "detector.hpp"
-#include "url_processor.hpp"
+#include "zookeeper/authentication.hpp"
+#include "zookeeper/zookeeper.hpp"
 
 using namespace mesos;
 using namespace mesos::internal;
@@ -51,7 +50,6 @@ using std::string;
 using std::vector;
 
 
-#ifdef WITH_ZOOKEEPER
 class ZooKeeperMasterDetector : public MasterDetector, public Watcher
 {
 public:
@@ -121,6 +119,7 @@ private:
 
   const string servers;
   const pair<string, string>* credentials;
+  ACL_vector acl;
   const string znode;
   const UPID pid;
   bool contend;
@@ -134,7 +133,6 @@ private:
   string currentMasterSeq;
   UPID currentMasterPID;
 };
-#endif // WITH_ZOOKEEPER
 
 
 MasterDetector::~MasterDetector() {}
@@ -160,7 +158,6 @@ MasterDetector* MasterDetector::create(const string &url,
   switch (urlPair.first) {
     // ZooKeeper URL.
     case UrlProcessor::ZOO: {
-#ifdef WITH_ZOOKEEPER
       // TODO(benh): Consider actually using the chroot feature of
       // ZooKeeper, rather than just using it's syntax.
       size_t index = urlPair.second.find("/");
@@ -191,10 +188,6 @@ MasterDetector* MasterDetector::create(const string &url,
         detector = new ZooKeeperMasterDetector(username, password, endpoints,
             znode, pid, contend, quiet);
       }
-#else
-      fatal("Cannot detect masters with 'zoo://', "
-            "ZooKeeper is not supported in this build");
-#endif // WITH_ZOOKEEPER
       break;
     }
 
@@ -308,7 +301,6 @@ BasicMasterDetector::BasicMasterDetector(const UPID& _master,
 BasicMasterDetector::~BasicMasterDetector() {}
 
 
-#ifdef WITH_ZOOKEEPER
 ZooKeeperMasterDetector::ZooKeeperMasterDetector(const string& servers,
                                                  const string& znode,
                                                  const UPID& pid,
@@ -342,6 +334,10 @@ void ZooKeeperMasterDetector::initialize(bool quiet,
 
   credentials = _credentials;
 
+  acl = credentials != NULL
+    ? zookeeper::EVERYONE_READ_CREATOR_ALL
+    : ZOO_OPEN_ACL_UNSAFE;
+
   // Start up the ZooKeeper connection!
   zk = new ZooKeeper(servers, milliseconds(10000), this);
 }
@@ -357,19 +353,6 @@ ZooKeeperMasterDetector::~ZooKeeperMasterDetector()
 }
 
 
-static ACL _EVERYONE_READ_CREATOR_ALL_ACL[] = {
-    {ZOO_PERM_READ, ZOO_ANYONE_ID_UNSAFE},
-    {ZOO_PERM_ALL, ZOO_AUTH_IDS}
-};
-
-
-// An ACL that ensures we're the only authenticated user to mutate our nodes -
-// others are welcome to read.
-static ACL_vector EVERYONE_READ_CREATOR_ALL = {
-    2, _EVERYONE_READ_CREATOR_ALL_ACL
-};
-
-
 void ZooKeeperMasterDetector::connected()
 {
   LOG(INFO) << "Master detector connected to ZooKeeper ...";
@@ -379,7 +362,7 @@ void ZooKeeperMasterDetector::connected()
     std::string username = credentials->first;
     std::string password = credentials->second;
     LOG(INFO) << "Authenticating to ZooKeeper with " << username << ":XXXXX";
-    ret = zk->authenticate(username, password);
+    ret = zk->authenticate("digest", username + ":" + password);
     if (ret != ZOK) {
       fatal("Failed to authenticate with ZooKeeper (%s) at : %s",
             zk->message(ret), servers.c_str());
@@ -404,7 +387,7 @@ void ZooKeeperMasterDetector::connected()
     LOG(INFO) << "Trying to create znode '" << prefix << "' in ZooKeeper";
 
     // Create the node (even if it already exists).
-    ret = zk->create(prefix, "", EVERYONE_READ_CREATOR_ALL, 0, &result);
+    ret = zk->create(prefix, "", acl, 0, &result);
 
     if (ret != ZOK && ret != ZNODEEXISTS) {
       fatal("failed to create ZooKeeper znode! (%s)", zk->message(ret));
@@ -422,7 +405,7 @@ void ZooKeeperMasterDetector::connected()
 
   if (contend) {
     // We contend with the pid given in constructor.
-    ret = zk->create(znode + "/", pid, EVERYONE_READ_CREATOR_ALL,
+    ret = zk->create(znode + "/", pid, acl,
 		     ZOO_SEQUENCE | ZOO_EPHEMERAL, &result);
 
     if (ret != ZOK) {
@@ -610,5 +593,3 @@ void ZooKeeperMasterDetector::detectMaster()
     }
   }
 }
-
-#endif // WITH_ZOOKEEPER
