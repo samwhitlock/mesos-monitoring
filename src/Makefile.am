@@ -29,6 +29,11 @@ ZOOKEEPER = third_party/zookeeper-3.3.1/src/c
 LIBPROCESS = third_party/libprocess
 LIBEV = $(LIBPROCESS)/third_party/libev-3.8
 
+# Unfortunatley, 'pkglibexecdir' is not set before automake 1.11, so
+# we need to do it manually (unless we in the future assume an
+# automake version).
+pkglibexecdir = $(libexecdir)/$(PACKAGE)
+
 # These next definitions may not seem like, much, but they are very
 # important! They inform where things that have the webui_, pythonegg_
 # and javalib_ prefix get installed! Also note that pkg*dir contains
@@ -67,9 +72,9 @@ PHONY_TARGETS =
 AM_CXXFLAGS = $(PTHREAD_CFLAGS)
 AM_LIBS = $(PTHREAD_LIBS)
 
-# Setup CPPFLAGS and CXXFLAGS that are used for most source files.
+# Setup CPPFLAGS that are used for most source files.
 MESOS_CPPFLAGS = $(AM_CPPFLAGS)
-MESOS_CPPFLAGS += -DMESOS_WEBUI_DIR=\"$(webuidir)\"
+MESOS_CPPFLAGS += -DMESOS_WEBUI_DIR=\"$(webuidir)/webui\"
 MESOS_CPPFLAGS += -DMESOS_LIBEXECDIR=\"$(pkglibexecdir)\"
 MESOS_CPPFLAGS += -I$(top_srcdir)/include
 MESOS_CPPFLAGS += -I$(top_srcdir)/$(BOOST)
@@ -82,8 +87,6 @@ if WITH_INCLUDED_ZOOKEEPER
   MESOS_CPPFLAGS += -I$(top_srcdir)/$(ZOOKEEPER)/include
   MESOS_CPPFLAGS += -I$(top_srcdir)/$(ZOOKEEPER)/generated
 endif
-
-MESOS_CXXFLAGS = -g2 -O2 $(AM_CXXFLAGS)
 
 
 # README: we build the Mesos library out of a collection of
@@ -98,7 +101,7 @@ MESOS_PROTO = $(top_srcdir)/include/mesos/mesos.proto
 
 CXX_PROTOS = mesos.pb.cc mesos.pb.h
 JAVA_PROTOS = java/generated/org/apache/mesos/Protos.java
-PYTHON_PROTOS = python/mesos_pb2.py
+PYTHON_PROTOS = python/src/mesos_pb2.py
 
 BUILT_SOURCES += $(CXX_PROTOS) $(JAVA_PROTOS) $(PYTHON_PROTOS)
 CLEANFILES += $(CXX_PROTOS) $(JAVA_PROTOS) $(PYTHON_PROTOS)
@@ -129,7 +132,7 @@ $(JAVA_PROTOS): $(MESOS_PROTO)
 
 $(PYTHON_PROTOS): $(MESOS_PROTO)
 	@$(MKDIR_P) $(@D)
-	@$(PROTOC) $(PROTOCFLAGS) --python_out=python $^
+	@$(PROTOC) $(PROTOCFLAGS) --python_out=python/src $^
 
 # We even use a convenience library for most of Mesos so that we can
 # exclude third party libraries so setuptools/distribute can build a
@@ -151,7 +154,14 @@ libmesos_no_third_party_la_SOURCES = sched/sched.cpp local/local.cpp	\
 	common/logging.cpp common/utils.cpp common/date_utils.cpp	\
 	common/resources.cpp common/attributes.cpp common/values.cpp	\
 	zookeeper/zookeeper.cpp zookeeper/authentication.cpp		\
-	zookeeper/group.cpp
+	zookeeper/group.cpp messages/log.proto messages/messages.proto
+
+pkginclude_HEADERS = $(top_srcdir)/include/mesos/executor.hpp	\
+		     $(top_srcdir)/include/mesos/scheduler.hpp	\
+		     $(top_srcdir)/include/mesos/mesos.hpp	\
+		     $(top_srcdir)/include/mesos/mesos.proto
+
+nodist_pkginclude_HEADERS = mesos.pb.h
 
 if OS_LINUX
   libmesos_no_third_party_la_SOURCES += slave/lxc_isolation_module.cpp
@@ -161,23 +171,24 @@ endif
 
 EXTRA_DIST += slave/solaris_project_isolation_module.cpp
 
-libmesos_no_third_party_la_SOURCES += common/build.hpp			\
-	common/date_utils.hpp common/factory.hpp common/fatal.hpp	\
-	common/foreach.hpp common/hashmap.hpp common/hashset.hpp	\
-	common/json.hpp common/lock.hpp common/logging.hpp		\
-	common/lambda.hpp common/option.hpp common/resources.hpp	\
-	common/result.hpp common/multihashmap.hpp			\
+libmesos_no_third_party_la_SOURCES += common/attributes.hpp		\
+	common/build.hpp common/date_utils.hpp common/factory.hpp	\
+	common/fatal.hpp common/foreach.hpp common/hashmap.hpp		\
+	common/hashset.hpp common/json.hpp common/lock.hpp		\
+	common/logging.hpp common/lambda.hpp common/option.hpp		\
+	common/resources.hpp common/result.hpp common/multihashmap.hpp	\
 	common/process_utils.hpp common/seconds.hpp common/try.hpp	\
-	common/type_utils.hpp common/units.hpp common/uuid.hpp		\
-	common/strings.hpp common/values.hpp common/attributes.hpp	\
+	common/type_utils.hpp common/thread.hpp common/timer.hpp	\
+	common/utils.hpp common/units.hpp common/uuid.hpp		\
+	common/strings.hpp common/values.hpp				\
 	configurator/configuration.hpp configurator/configurator.hpp	\
 	configurator/option.hpp detector/detector.hpp			\
 	detector/url_processor.hpp launcher/launcher.hpp		\
-	local/local.hpp log/coordinator.hpp				\
-	log/replica.hpp log/log.hpp log/network.hpp			\
-	master/allocator.hpp master/allocator_factory.hpp		\
-	master/constants.hpp master/frameworks_manager.hpp		\
-	master/http.hpp master/master.hpp master/simple_allocator.hpp	\
+	local/local.hpp log/coordinator.hpp log/replica.hpp		\
+	log/log.hpp log/network.hpp master/allocator.hpp		\
+	master/allocator_factory.hpp master/constants.hpp		\
+	master/frameworks_manager.hpp master/http.hpp			\
+	master/master.hpp master/simple_allocator.hpp			\
 	master/slaves_manager.hpp master/webui.hpp messages/log.hpp	\
 	messages/messages.hpp slave/constants.hpp slave/http.hpp	\
 	slave/isolation_module.hpp slave/isolation_module_factory.hpp	\
@@ -185,14 +196,12 @@ libmesos_no_third_party_la_SOURCES += common/build.hpp			\
 	slave/process_based_isolation_module.hpp slave/reaper.hpp	\
 	slave/slave.hpp slave/solaris_project_isolation_module.hpp	\
 	slave/webui.hpp tests/external_test.hpp				\
-	tests/base_zookeeper_test.hpp tests/jvm.hpp tests/utils.hpp	\
+	tests/base_zookeeper_test.hpp tests/utils.hpp			\
 	tests/zookeeper_server.hpp zookeeper/authentication.hpp		\
 	zookeeper/group.hpp zookeeper/watcher.hpp			\
-	zookeeper/zookeeper.hpp jvm/jvm.hpp
+	zookeeper/zookeeper.hpp
 
 libmesos_no_third_party_la_CPPFLAGS = $(MESOS_CPPFLAGS)
-
-libmesos_no_third_party_la_CXXFLAGS = $(MESOS_CXXFLAGS)
 
 libmesos_no_third_party_la_LIBADD = # Initialized to allow += below.
 
@@ -204,7 +213,11 @@ libbuild_la_CPPFLAGS += -DBUILD_DATE="\"$$(date '+%Y-%m-%d %H:%M:%S')\""
 libbuild_la_CPPFLAGS += -DBUILD_USER="\"$$USER\""
 
 # We need to escape the build flags properly.
-BUILD_FLAGS=$(echo $(MESOS_CPPFLAGS) | sed 's/\"/\\\"/g') $(MESOS_CXXFLAGS)
+BUILD_FLAGS = $(echo $(MESOS_CPPFLAGS) $(CPPFLAGS) | sed 's/\"/\\\"/g') \
+              $(echo $(AM_CFLAGS) $(CFLAGS) | sed 's/\"/\\\"/g') \
+              $(echo $(AM_CXXFLAGS) $(CXXFLAGS) | sed 's/\"/\\\"/g')
+
+# TODO(benh): Provide other build flags such as WEBUI_FLAGS, etc.
 
 libbuild_la_CPPFLAGS += -DBUILD_FLAGS="\"$$BUILD_FLAGS\""
 
@@ -219,7 +232,6 @@ noinst_LTLIBRARIES += liblog.la
 liblog_la_SOURCES = log/coordinator.cpp log/replica.cpp
 nodist_liblog_la_SOURCES = $(LOG_PROTOS)
 liblog_la_CPPFLAGS = -I../$(LEVELDB)/include $(MESOS_CPPFLAGS)
-liblog_la_CXXFLAGS = $(MESOS_CXXFLAGS)
 liblog_la_LDFLAGS = -L../$(LEVELDB)
 liblog_la_LIBADD = -lleveldb
 
@@ -232,7 +244,7 @@ noinst_LTLIBRARIES += libwebui.la
 libwebui_la_SOURCES = master/webui.cpp slave/webui.cpp common/webui_utils.cpp
 libwebui_la_SOURCES += master/webui.hpp slave/webui.hpp common/webui_utils.hpp
 libwebui_la_CPPFLAGS = $(MESOS_CPPFLAGS) $(WEBUI_CPPFLAGS)
-libwebui_la_CXXFLAGS = $(MESOS_CXXFLAGS)
+libwebui_la_LIBADD = $(WEBUI_LDFLAGS)
 endif
 
 
@@ -253,7 +265,7 @@ libmesos_la_LIBADD = libmesos_no_third_party.la
 # For non-convenience libraries we need to link them in to make the shared
 # library each time. (Currently, we don't support platforms where this is not
 # possible.)
-libmesos_la_LIBADD += $(top_builddir)/$(PROTOBUF)/src/.libs/libprotobuf.a
+libmesos_la_LIBADD += $(top_builddir)/$(PROTOBUF)/src/.libs/libprotobuf.la
 libmesos_la_LIBADD += $(top_builddir)/$(GLOG)/.libs/libglog.la
 libmesos_la_LIBADD += $(top_builddir)/$(LIBPROCESS)/libprocess.a
 libmesos_la_LIBADD += $(top_builddir)/$(LIBEV)/.libs/libev.la
@@ -267,46 +279,37 @@ endif
 sbin_PROGRAMS += mesos-master
 mesos_master_SOURCES = master/main.cpp
 mesos_master_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_master_CXXFLAGS = $(MESOS_CXXFLAGS)
-mesos_master_LDFLAGS = $(WEBUI_LDFLAGS) $(AM_LDFLAGS)
 mesos_master_LDADD = libwebui.la libmesos.la
 
 sbin_PROGRAMS += mesos-slave
 mesos_slave_SOURCES = slave/main.cpp
 mesos_slave_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_slave_CXXFLAGS = $(MESOS_CXXFLAGS)
-mesos_slave_LDFLAGS = $(WEBUI_LDFLAGS) $(AM_LDFLAGS)
 mesos_slave_LDADD = libwebui.la libmesos.la
 
 bin_PROGRAMS += mesos-local
 mesos_local_SOURCES = local/main.cpp
 mesos_local_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_local_CXXFLAGS = $(MESOS_CXXFLAGS)
 mesos_local_LDADD = libmesos.la
 
 pkglibexec_PROGRAMS += mesos-launcher
 mesos_launcher_SOURCES = launcher/main.cpp launcher/launcher.cpp
 mesos_launcher_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_launcher_CXXFLAGS = $(MESOS_CXXFLAGS)
 mesos_launcher_LDADD = libmesos.la
 
 bin_PROGRAMS += mesos-log
 mesos_log_SOURCES = log/main.cpp
 mesos_log_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_log_CXXFLAGS = $(MESOS_CXXFLAGS)
 mesos_log_LDADD = libmesos.la
 
 # TODO(benh): Support Solaris.
 # bin_PROGRAMS += mesos-projd
 # mesos_projd_SOURCES = slave/projd.cpp
 # mesos_projd_CPPFLAGS = $(MESOS_CPPFLAGS)
-# mesos_projd_CXXFLAGS = $(MESOS_CXXFLAGS)
 # mesos_projd_LDADD = libmesos.la
 
 bin_PROGRAMS += mesos-mesos
 mesos_mesos_SOURCES = mesos/main.cpp
 mesos_mesos_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_mesos_CXXFLAGS = $(MESOS_CXXFLAGS)
 mesos_mesos_LDADD = libmesos.la
 
 
@@ -329,6 +332,31 @@ nobase_dist_webui_SCRIPTS += $(WEBUISCRIPTS)
 dist_pkglibexec_SCRIPTS += scripts/killtree.sh
 
 
+# Java related files are listed outside if HAS_JAVA so we can add them
+# to EXTRA_DIST unconditionally.
+
+# Mesos JAR.
+MESOS_JAR = mesos.jar
+MESOS_JAR_SRCROOT = $(srcdir)/java/src
+MESOS_JAR_SRCDIR = $(srcdir)/java/src/org/apache/mesos
+MESOS_JAR_SRC = $(MESOS_JAR_SRCDIR)/ExecutorDriver.java		\
+		$(MESOS_JAR_SRCDIR)/Executor.java		\
+		$(MESOS_JAR_SRCDIR)/Log.java			\
+		$(MESOS_JAR_SRCDIR)/MesosExecutorDriver.java	\
+		$(MESOS_JAR_SRCDIR)/MesosSchedulerDriver.java	\
+		$(MESOS_JAR_SRCDIR)/SchedulerDriver.java	\
+		$(MESOS_JAR_SRCDIR)/Scheduler.java
+
+EXTRA_DIST += $(MESOS_JAR_SRC)
+
+# We build all the Java examples into their own JAR.
+EXAMPLES_JAR = examples.jar
+JAVA_EXAMPLES_SRC = $(srcdir)/examples/java/TestExceptionFramework.java	\
+	$(srcdir)/examples/java/TestExecutor.java			\
+	$(srcdir)/examples/java/TestFramework.java			\
+	$(srcdir)/examples/java/TestMultipleExecutorsFramework.java
+EXTRA_DIST += $(JAVA_EXAMPLES_SRC)
+
 if HAS_JAVA
 # Protocol buffers JAR.
 PROTOBUF_JAR = ../protobuf.jar
@@ -348,14 +376,6 @@ $(PROTOBUF_JAR): # TODO(charles): Specify dependencies for the jar.
 CLEANFILES += $(PROTOBUF_JAR)
 
 
-# Mesos JAR.
-MESOS_JAR = mesos.jar
-MESOS_JAR_SRCROOT = $(srcdir)/java/src
-MESOS_JAR_SRCDIR = $(srcdir)/java/src/org/apache/mesos
-MESOS_JAR_SRC = $(MESOS_JAR_SRCDIR)/*.java
-
-EXTRA_DIST += $(MESOS_JAR_SRC)
-
 $(MESOS_JAR): $(MESOS_JAR_SRC) $(JAVA_PROTOS) $(PROTOBUF_JAR)
 	@echo "Building mesos.jar ..."
 	@rm -f java/classes/org/apache/mesos/*
@@ -364,6 +384,8 @@ $(MESOS_JAR): $(MESOS_JAR_SRC) $(JAVA_PROTOS) $(PROTOBUF_JAR)
           -cp $(PROTOBUF_JAR) -sourcepath java/generated \
           -d java/classes $(MESOS_JAR_SRC) $(JAVA_PROTOS)
 	@$(JAVA_HOME)/bin/jar cf $@ -C java/classes org
+
+CLEANFILES += $(MESOS_JAR)
 
 javalib_DATA = $(MESOS_JAR)
 
@@ -375,7 +397,7 @@ $(MESOS_SOURCES_JAR): $(MESOS_JAR_SRC)
 	@$(JAVA_HOME)/bin/jar cf $@ -C $(MESOS_JAR_SRCROOT) org
 	@$(JAVA_HOME)/bin/jar uf $@ -C java/generated org
 
-CLEANFILES += java/classes $(MESOS_JAR) $(MESOS_SOURCES_JAR)
+CLEANFILES += $(MESOS_SOURCES_JAR)
 
 
 # Convenience library for JNI bindings.
@@ -395,13 +417,16 @@ libjava_la_CPPFLAGS = $(MESOS_CPPFLAGS)
 libjava_la_CPPFLAGS += $(JAVA_CPPFLAGS)
 libjava_la_CPPFLAGS += -I$(srcdir)/java/jni -Ijava/jni
 
-libjava_la_CXXFLAGS = $(MESOS_CXXFLAGS)
-
 libjava_la_DEPENDENCIES = $(MESOS_PROTO)
 
 libjava_la_LIBADD = $(JAVA_LDFLAGS)
 
-libmesos_no_third_party_la_LIBADD += libjava.la
+# We don't add libjava.la to libmesos_no_third_party.la so we don't
+# include the JNI bindings in the Python egg (but we might want to
+# reconsider this in the future). We also need to add the JAVA_LDFLAGS
+# to libmesos.la so on Linux we set the rpath for libmesos.so.
+libmesos_la_LIBADD += libjava.la
+libmesos_la_LIBADD += $(JAVA_LDFLAGS)
 
 # We need to generate the JNI header files before we build the sources
 # and the easiest way to do that with autotools is with the
@@ -434,15 +459,6 @@ java/jni/org_apache_mesos_Log.h: $(MESOS_JAR)
 	@$(JAVA_HOME)/bin/javah -d java/jni -classpath		\
           $(PROTOBUF_JAR):java/classes org.apache.mesos.Log
 
-# We build all the Java examples into their own JAR.
-EXAMPLES_JAR = examples.jar
-JAVA_EXAMPLES_SRC = $(srcdir)/examples/TestExceptionFramework.java	\
-	$(srcdir)/examples/TestExecutor.java				\
-	$(srcdir)/examples/TestFramework.java				\
-	$(srcidr)/examples/TestMultipleExecutorsFramework.java
-
-EXTRA_DIST += $(JAVA_EXAMPLES_SOURCES)
-
 $(EXAMPLES_JAR): $(JAVA_EXAMPLES_SOURCES)
 	@echo "Building examples.jar ..."
 	@$(MKDIR_P) examples/java
@@ -452,6 +468,8 @@ $(EXAMPLES_JAR): $(JAVA_EXAMPLES_SOURCES)
           $(srcdir)/examples/java/*.java
 	@$(JAVA_HOME)/bin/jar cf $@ -C examples/java .
 
+CLEANFILES += $(EXMAPLES_JAR)
+
 maven-install: $(MESOS_JAR) $(MESOS_SOURCES_JAR) java/mesos.pom
 	mvn install:install-file -Dfile=$(MESOS_JAR)	\
           -Dsources=$(MESOS_SOURCES_JAR) -DpomFile=java/mesos.pom
@@ -459,38 +477,42 @@ maven-install: $(MESOS_JAR) $(MESOS_SOURCES_JAR) java/mesos.pom
 PHONY_TARGETS += maven-install
 endif # HAS_JAVA
 
+clean-java:
+	-rm -rf java/classes
+	-rm -f examples/java/*.class
+	-rm -f java/jni/org_apache_mesos*.h
+
+PHONY_TARGETS += clean-java
+
+
+# Python files listed outside HAS_PYTHON so they are included with the
+# distribution unconditionally.
+EXTRA_DIST += python/src/mesos.py				\
+	      python/native/mesos_executor_driver_impl.cpp	\
+	      python/native/mesos_executor_driver_impl.hpp	\
+	      python/native/mesos_scheduler_driver_impl.cpp	\
+	      python/native/mesos_scheduler_driver_impl.hpp	\
+	      python/native/module.cpp python/native/module.hpp	\
+	      python/native/proxy_executor.cpp			\
+	      python/native/proxy_executor.hpp			\
+	      python/native/proxy_scheduler.cpp			\
+	      python/native/proxy_scheduler.hpp
 
 if HAS_PYTHON
-# TODO(Charles Reiss): Figure out how to do a proper out-of-source
-# build of these Python eggs. Right now we copy the entire source
-# directories into the build directory.
-
 # This builds a Python egg against libmesos_no_third_party.a that is
 # self-contained. It currently depends on the libraries in third_party
 # being built as .a's. (If this is changed, the setup.py will need to
 # be edited).
-#
+
+# TODO(Charles Reiss): Figure out how to do a proper out-of-source
+# build of these Python eggs. Right now we copy the entire source
+# directories into the build directory.
+
 # TODO(Charles Reiss): Additionally support building and installing
 # Python libraries that link against the system libmesos.so. This
 # should be the default mode if we eventually are able to rely on
 # system versions of our dependencies (since we won't be able to
 # create a standalone egg anyways).
-
-# We need to be able to "name" the egg that gets generated via
-# setup.py so that we don't attempt to rebuild it each time, hence the
-# need for PYTHON_EGG_POSTFIX.
-MESOS_EGG = python/dist/mesos-$(PACKAGE_VERSION)$(PYTHON_EGG_POSTFIX).egg
-
-$(MESOS_EGG): python/setup.py $(srcdir)/python/src/mesos.py	\
-	       $(PYTHON_PROTOS) libmesos_no_third_party.la	\
-	       $(PROTOBUF_EGG)
-	@echo "Building Mesos Python egg ..."
-	@$(MKDIR_P) python/src
-	@cp -pf $(srcdir)/python/src/mesos.py python/src
-	@cp -pf $(PYTHON_PROTOS) python/src
-	@PYTHONPATH=../$(SETUPTOOLS) $(PYTHON) python/setup.py bdist_egg
-
-CLEANFILES += $(MESOS_EGG)
 
 # TODO(Charles Reiss): Don't hard code this verison number.
 PROTOBUF_EGG =								\
@@ -505,14 +527,41 @@ $(PROTOBUF_EGG):
 	    ../$(PROTOBUF)/src/google/protobuf; \
 	fi
 	@cd ../$(PROTOBUF)/python && \
-	  PYTHONPATH=../$(SETUPTOOLS) $(PYTHON) setup.py bdist_egg
+	  PYTHONPATH=../../../$(SETUPTOOLS) $(PYTHON) setup.py bdist_egg
 
 CLEANFILES += $(PROTOBUF_EGG)
 
-all-local: $(MESOS_EGG)
+MESOS_EGG = python/dist/mesos-$(PACKAGE_VERSION)$(PYTHON_EGG_POSTFIX).egg
+
+$(MESOS_EGG): python/setup.py $(srcdir)/python/src/mesos.py	\
+	      $(PYTHON_PROTOS) libmesos_no_third_party.la	\
+	      $(PROTOBUF_EGG)
+	@echo "Building Mesos Python egg ..."
+	@if test "$(top_srcdir)" != "$(top_builddir)"; then \
+	  $(MKDIR_P) python/src; \
+	  cp -pf $(srcdir)/python/src/mesos.py python/src; \
+	fi
+	@PYTHONPATH=../$(SETUPTOOLS) $(PYTHON) python/setup.py bdist_egg
+
+CLEANFILES += $(MESOS_EGG) python/build/temp.*/native/*.o python/build/lib.*/*
 
 pythonegg_DATA = $(MESOS_EGG)
+
+# Make sure the egg gets built via 'make all'.
+all-local: $(MESOS_EGG)
 endif # HAS_PYTHON
+
+# Note that to clean up the copied Python files we have to 'chmod u+w
+# python/native' because creating a distribution can eliminate write
+# permissions for the owner which are conserved even after we 'cp -p'
+# so we won't be able to delete the files until we update permissions.
+clean-python:
+	test "$(top_srcdir)" = "$(top_builddir)" || \
+	  (chmod -R u+w python/native; \
+	   rm -rf python/src/mesos.py python/native)
+	-rm -rf python/src/mesos.egg-info python/build
+
+PHONY_TARGETS += clean-python
 
 
 # Test (make check) binaries.
@@ -576,8 +625,6 @@ mesos_tests_CPPFLAGS += -DBUILD_DIR=\"$(abs_top_builddir)\"
 mesos_tests_CPPFLAGS += -I$(top_srcdir)/$(GTEST)/include
 mesos_tests_CPPFLAGS += -I$(top_srcdir)/$(GMOCK)/include
 
-mesos_tests_CXXFLAGS = -g2 -O0 $(AM_CXXFLAGS)
-
 mesos_tests_LDADD = ../.libs/libgmock.la libmesos.la
 
 mesos_tests_DEPENDENCIES = # Initialized to allow += below.
@@ -622,6 +669,13 @@ dist_check_SCRIPTS += $(EXTERNALSCRIPTS)
 
 TESTS += mesos-tests
 
+clean-check:
+	-rm -rf $(top_builddir)/test_output
+
+PHONY_TARGETS += clean-check
+
 FORCE:
+
+clean-local: clean-java clean-python clean-check
 
 .PHONY: $(PHONY_TARGETS)

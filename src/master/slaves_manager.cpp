@@ -25,8 +25,6 @@
 
 #include <process/dispatch.hpp>
 
-#include "config/config.hpp"
-
 #include "common/fatal.hpp"
 #include "common/strings.hpp"
 
@@ -42,6 +40,7 @@ using namespace mesos::internal::master;
 using boost::bad_lexical_cast;
 using boost::lexical_cast;
 
+using process::Future;
 using process::HttpInternalServerErrorResponse;
 using process::HttpNotFoundResponse;
 using process::HttpOKResponse;
@@ -49,7 +48,6 @@ using process::HttpResponse;
 using process::HttpRequest;
 using process::PID;
 using process::Process;
-using process::Promise;
 using process::UPID;
 
 using std::ostringstream;
@@ -71,16 +69,16 @@ public:
 
   virtual ~ZooKeeperSlavesManagerStorage();
 
-  virtual Promise<bool> add(const string& hostname, uint16_t port);
-  virtual Promise<bool> remove(const string& hostname, uint16_t port);
-  virtual Promise<bool> activate(const string& hostname, uint16_t port);
-  virtual Promise<bool> deactivate(const string& hostname, uint16_t port);
+  virtual Future<bool> add(const string& hostname, uint16_t port);
+  virtual Future<bool> remove(const string& hostname, uint16_t port);
+  virtual Future<bool> activate(const string& hostname, uint16_t port);
+  virtual Future<bool> deactivate(const string& hostname, uint16_t port);
 
-  Promise<bool> connected();
-  Promise<bool> reconnecting();
-  Promise<bool> reconnected();
-  Promise<bool> expired();
-  Promise<bool> updated(const string& path);
+  Future<bool> connected();
+  Future<bool> reconnecting();
+  Future<bool> reconnected();
+  Future<bool> expired();
+  Future<bool> updated(const string& path);
 
 private:
   bool parse(const string& key,
@@ -159,7 +157,7 @@ ZooKeeperSlavesManagerStorage::~ZooKeeperSlavesManagerStorage()
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::add(const string& hostname, uint16_t port)
+Future<bool> ZooKeeperSlavesManagerStorage::add(const string& hostname, uint16_t port)
 {
   // TODO(benh): Use ZooKeeperSlavesManagerStorage::parse to clean up code.
   int ret;
@@ -214,7 +212,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::add(const string& hostname, uint16_
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::remove(const string& hostname, uint16_t port)
+Future<bool> ZooKeeperSlavesManagerStorage::remove(const string& hostname, uint16_t port)
 {
   // TODO(benh): Use ZooKeeperSlavesManagerStorage::parse to clean up code.
   int ret;
@@ -269,7 +267,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::remove(const string& hostname, uint
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::activate(const string& hostname, uint16_t port)
+Future<bool> ZooKeeperSlavesManagerStorage::activate(const string& hostname, uint16_t port)
 {
   // TODO(benh): Use ZooKeeperSlavesManagerStorage::parse to clean up code.
   int ret;
@@ -350,7 +348,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::activate(const string& hostname, ui
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::deactivate(const string& hostname, uint16_t port)
+Future<bool> ZooKeeperSlavesManagerStorage::deactivate(const string& hostname, uint16_t port)
 {
   // TODO(benh): Use ZooKeeperSlavesManagerStorage::parse to clean up code.
   int ret;
@@ -431,7 +429,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::deactivate(const string& hostname, 
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::connected()
+Future<bool> ZooKeeperSlavesManagerStorage::connected()
 {
   int ret;
 
@@ -467,7 +465,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::connected()
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::reconnecting()
+Future<bool> ZooKeeperSlavesManagerStorage::reconnecting()
 {
   LOG(INFO) << "Slaves manager storage lost connection to ZooKeeper, "
 	    << "attempting to reconnect ...";
@@ -475,7 +473,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::reconnecting()
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::reconnected()
+Future<bool> ZooKeeperSlavesManagerStorage::reconnected()
 {
   LOG(INFO) << "Slaves manager storage has reconnected ...";
 
@@ -485,7 +483,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::reconnected()
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::expired()
+Future<bool> ZooKeeperSlavesManagerStorage::expired()
 {
   LOG(WARNING) << "Slaves manager storage session expired!";
 
@@ -501,7 +499,7 @@ Promise<bool> ZooKeeperSlavesManagerStorage::expired()
 }
 
 
-Promise<bool> ZooKeeperSlavesManagerStorage::updated(const string& path)
+Future<bool> ZooKeeperSlavesManagerStorage::updated(const string& path)
 {
   int ret;
   string result;
@@ -636,19 +634,19 @@ SlavesManager::SlavesManager(const Configuration& conf,
     process::spawn(storage);
   }
 
-  // Set up our HTTP endpoints.
-  installHttpHandler("add", &SlavesManager::add);
-  installHttpHandler("remove", &SlavesManager::remove);
-  installHttpHandler("activate", &SlavesManager::activate);
-  installHttpHandler("deactivate", &SlavesManager::deactivate);
-  installHttpHandler("activated", &SlavesManager::activated);
-  installHttpHandler("deactivated", &SlavesManager::deactivated);
+  // Setup our HTTP endpoints.
+  route("add", &SlavesManager::add);
+  route("remove", &SlavesManager::remove);
+  route("activate", &SlavesManager::activate);
+  route("deactivate", &SlavesManager::deactivate);
+  route("activated", &SlavesManager::activated);
+  route("deactivated", &SlavesManager::deactivated);
 }
 
 
 SlavesManager::~SlavesManager()
 {
-  process::post(storage->self(), process::TERMINATE);
+  process::terminate(storage->self());
   process::wait(storage->self());
   delete storage;
 }
@@ -668,7 +666,7 @@ bool SlavesManager::add(const string& hostname, uint16_t port)
   // Ignore request if slave is already active.
   if (active.contains(hostname, port)) {
     LOG(WARNING) << "Attempted to add an already added slave!";
-    return true;
+    return false;
   }
 
   // Make sure this slave is not currently deactivated.
@@ -679,8 +677,13 @@ bool SlavesManager::add(const string& hostname, uint16_t port)
   }
 
   // Ask the storage system to persist the addition.
-  if (process::call(storage->self(), &SlavesManagerStorage::add,
-                    hostname, port)) {
+  Future<bool> added =
+    process::dispatch(storage->self(), &SlavesManagerStorage::add,
+                      hostname, port);
+
+  added.await();
+
+  if (added.isReady() && added.get()) {
     active.put(hostname, port);
 
     // Tell the master that this slave is now active.
@@ -704,8 +707,13 @@ bool SlavesManager::remove(const string& hostname, uint16_t port)
   }
 
   // Get the storage system to persist the removal.
-  if (process::call(storage->self(), &SlavesManagerStorage::remove,
-                    hostname, port)) {
+  Future<bool> removed =
+    process::dispatch(storage->self(), &SlavesManagerStorage::remove,
+                      hostname, port);
+
+  removed.await();
+
+  if (removed.isReady() && removed.get()) {
     active.remove(hostname, port);
     inactive.remove(hostname, port);
 
@@ -725,8 +733,13 @@ bool SlavesManager::activate(const string& hostname, uint16_t port)
   // Make sure the slave is currently deactivated.
   if (inactive.contains(hostname, port)) {
     // Get the storage system to persist the activation.
-    if (process::call(storage->self(), &SlavesManagerStorage::activate,
-                      hostname, port)) {
+    Future<bool> activated =
+      process::dispatch(storage->self(), &SlavesManagerStorage::activate,
+                        hostname, port);
+
+    activated.await();
+
+    if (activated.isReady() && activated.get()) {
       active.put(hostname, port);
       inactive.remove(hostname, port);
 
@@ -747,8 +760,13 @@ bool SlavesManager::deactivate(const string& hostname, uint16_t port)
   // Make sure the slave is currently activated.
   if (active.contains(hostname, port)) {
     // Get the storage system to persist the deactivation.
-    if (process::call(storage->self(), &SlavesManagerStorage::deactivate,
-                      hostname, port)) {
+    Future<bool> deactivated =
+      process::dispatch(storage->self(), &SlavesManagerStorage::deactivate,
+                        hostname, port);
+
+    deactivated.await();
+
+    if (deactivated.isReady() && deactivated.get()) {
       active.remove(hostname, port);
       inactive.put(hostname, port);
 
@@ -795,7 +813,7 @@ void SlavesManager::updateInactive(
 }
 
 
-Promise<HttpResponse> SlavesManager::add(const HttpRequest& request)
+Future<HttpResponse> SlavesManager::add(const HttpRequest& request)
 {
   // Parse the query to get out the slave hostname and port.
   string hostname = "";
@@ -838,7 +856,7 @@ Promise<HttpResponse> SlavesManager::add(const HttpRequest& request)
 }
 
 
-Promise<HttpResponse> SlavesManager::remove(const HttpRequest& request)
+Future<HttpResponse> SlavesManager::remove(const HttpRequest& request)
 {
   // Parse the query to get out the slave hostname and port.
   string hostname = "";
@@ -881,7 +899,7 @@ Promise<HttpResponse> SlavesManager::remove(const HttpRequest& request)
 }
 
 
-Promise<HttpResponse> SlavesManager::activate(const HttpRequest& request)
+Future<HttpResponse> SlavesManager::activate(const HttpRequest& request)
 {
   // Parse the query to get out the slave hostname and port.
   string hostname = "";
@@ -924,7 +942,7 @@ Promise<HttpResponse> SlavesManager::activate(const HttpRequest& request)
 }
 
 
-Promise<HttpResponse> SlavesManager::deactivate(const HttpRequest& request)
+Future<HttpResponse> SlavesManager::deactivate(const HttpRequest& request)
 {
   // Parse the query to get out the slave hostname and port.
   string hostname = "";
@@ -967,7 +985,7 @@ Promise<HttpResponse> SlavesManager::deactivate(const HttpRequest& request)
 }
 
 
-Promise<HttpResponse> SlavesManager::activated(const HttpRequest& request)
+Future<HttpResponse> SlavesManager::activated(const HttpRequest& request)
 {
   LOG(INFO) << "Slaves manager received HTTP request for activated slaves";
 
@@ -985,7 +1003,7 @@ Promise<HttpResponse> SlavesManager::activated(const HttpRequest& request)
 }
 
 
-Promise<HttpResponse> SlavesManager::deactivated(const HttpRequest& request)
+Future<HttpResponse> SlavesManager::deactivated(const HttpRequest& request)
 {
   LOG(INFO) << "Slaves manager received HTTP request for deactivated slaves";
 

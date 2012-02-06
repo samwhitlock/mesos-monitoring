@@ -24,6 +24,7 @@
 
 #include <process/process.hpp>
 #include <process/protobuf.hpp>
+#include <process/timer.hpp>
 
 #include "common/foreach.hpp"
 #include "common/hashmap.hpp"
@@ -108,7 +109,6 @@ public:
   void timerTick();
   void frameworkFailoverTimeout(const FrameworkID& frameworkId,
                                 double reregisteredTime);
-  void exited();
 
   void updateUsage(const UsageMessage& update);
 
@@ -122,9 +122,9 @@ public:
                   const hashmap<Slave*, Resources>& offered);
 
 protected:
-  virtual void operator () ();
-
-  void initialize();
+  virtual void initialize();
+  virtual void finalize();
+  virtual void exited(const UPID& pid);
 
   // Process a launch tasks request (for a non-cancelled offer) by
   // launching the desired tasks (if the offer contains a valid set of
@@ -186,15 +186,15 @@ private:
   // Http handlers, friends of the master in order to access state,
   // they get invoked from within the master so there is no need to
   // use synchronization mechanisms to protect state.
-  friend Promise<HttpResponse> http::vars(
+  friend Future<HttpResponse> http::vars(
       const Master& master,
       const HttpRequest& request);
 
-  friend Promise<HttpResponse> http::json::stats(
+  friend Future<HttpResponse> http::json::stats(
       const Master& master,
       const HttpRequest& request);
 
-  friend Promise<HttpResponse> http::json::state(
+  friend Future<HttpResponse> http::json::state(
       const Master& master,
       const HttpRequest& request);
 
@@ -205,10 +205,7 @@ private:
   Allocator* allocator;
   SlavesManager* slavesManager;
 
-  // Contains the date the master was launched and some ephemeral
-  // token (e.g. returned from ZooKeeper). Used in framework and slave
-  // IDs created by this master.
-  std::string id;
+  MasterInfo info;
 
   multihashmap<std::string, uint16_t> slaveHostnamePorts;
 
@@ -234,6 +231,8 @@ private:
   } stats;
 
   double startTime; // Start time used to calculate uptime.
+
+  process::timer timerTickTimer;
 };
 
 
