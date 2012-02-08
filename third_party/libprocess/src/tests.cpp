@@ -544,11 +544,61 @@ TEST(libprocess, select)
 
   promise1.set(42);
 
-  Future<int> future = select(futures);
+  Future<Future<int> > future = select(futures);
 
   EXPECT_TRUE(future.await());
   EXPECT_TRUE(future.isReady());
-  EXPECT_EQ(42, future.get());
+  EXPECT_TRUE(future.get().isReady());
+  EXPECT_EQ(42, future.get().get());
+}
+
+
+class SettleProcess : public Process<SettleProcess>
+{
+public:
+  SettleProcess() : calledDispatch(false) {}
+
+  virtual void initialize()
+  {
+    usleep(10000);
+    delay(0.0, self(), &SettleProcess::afterDelay);
+  }
+
+  void afterDelay()
+  {
+    dispatch(self(), &SettleProcess::afterDispatch);
+    usleep(10000);
+    TimeoutProcess timeoutProcess;
+    spawn(timeoutProcess);
+    terminate(timeoutProcess);
+    wait(timeoutProcess);
+  }
+
+  void afterDispatch()
+  {
+    usleep(10000);
+    calledDispatch = true;
+  }
+
+  volatile bool calledDispatch;
+};
+
+
+TEST(libprocess, settle)
+{
+  ASSERT_TRUE(GTEST_IS_THREADSAFE);
+
+  // Try 100 times to hit a race.
+  for (int i = 0; i < 100; ++i) {
+    Clock::pause();
+    SettleProcess process;
+    spawn(process);
+    Clock::settle();
+    ASSERT_TRUE(process.calledDispatch);
+    terminate(process);
+    wait(process);
+    Clock::resume();
+  }
 }
 
 
