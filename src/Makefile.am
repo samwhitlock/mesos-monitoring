@@ -154,7 +154,8 @@ libmesos_no_third_party_la_SOURCES = sched/sched.cpp local/local.cpp	\
 	common/logging.cpp common/utils.cpp common/date_utils.cpp	\
 	common/resources.cpp common/attributes.cpp common/values.cpp	\
 	zookeeper/zookeeper.cpp zookeeper/authentication.cpp		\
-	zookeeper/group.cpp messages/log.proto messages/messages.proto
+	zookeeper/group.cpp messages/log.proto messages/messages.proto \
+	monitoring/process_resource_collector.cpp monitoring/resource_monitor.cpp
 
 pkginclude_HEADERS = $(top_srcdir)/include/mesos/executor.hpp	\
 		     $(top_srcdir)/include/mesos/scheduler.hpp	\
@@ -164,9 +165,13 @@ pkginclude_HEADERS = $(top_srcdir)/include/mesos/executor.hpp	\
 nodist_pkginclude_HEADERS = mesos.pb.h
 
 if OS_LINUX
-  libmesos_no_third_party_la_SOURCES += slave/lxc_isolation_module.cpp
+  libmesos_no_third_party_la_SOURCES += slave/lxc_isolation_module.cpp \
+		monitoring/linux/proc_utils.cpp monitoring/linux/proc_resource_collector.cpp \
+		monitoring/linux/lxc_resource_collector.cpp
 else
-  EXTRA_DIST += slave/lxc_isolation_module.cpp
+  EXTRA_DIST += slave/lxc_isolation_module.cpp monitoring/linux/proc_utils.cpp \
+	  monitoring/linux/proc_resource_collector.cpp \
+	  monitoring/linux/lxc_resource_collector.cpp
 endif
 
 EXTRA_DIST += slave/solaris_project_isolation_module.cpp
@@ -186,6 +191,10 @@ libmesos_no_third_party_la_SOURCES += common/attributes.hpp		\
 	detector/url_processor.hpp launcher/launcher.hpp		\
 	local/local.hpp log/coordinator.hpp log/replica.hpp		\
 	log/log.hpp log/network.hpp master/allocator.hpp		\
+	monitoring/process_resource_collector.hpp monitoring/resource_collector.hpp \
+	monitoring/resource_monitor.hpp monitoring/linux/proc_utils.hpp \
+	monitoring/linux/proc_resource_collector.hpp \
+	monitoring/linux/lxc_resource_collector.hpp \
 	master/allocator_factory.hpp master/constants.hpp		\
 	master/frameworks_manager.hpp master/http.hpp			\
 	master/master.hpp master/simple_allocator.hpp			\
