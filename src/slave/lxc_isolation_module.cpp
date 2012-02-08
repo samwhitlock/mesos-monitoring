@@ -29,7 +29,7 @@
 #include "common/units.hpp"
 #include "common/utils.hpp"
 #include "monitoring/resource_monitor.hpp"
-#include "monitoring/lxc_resource_collector.hpp"
+#include "monitoring/linux/lxc_resource_collector.hpp"
 
 #include "launcher/launcher.hpp"
 

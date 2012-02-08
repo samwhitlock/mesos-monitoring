@@ -23,7 +23,7 @@
 #include <process/process.hpp>
 
 #include "monitoring/linux/proc_utils.hpp"
-#include "monitoring/lxc_resource_collector.hpp"
+#include "monitoring/linux/lxc_resource_collector.hpp"
 
 #include "common/utils.hpp"
 #include "common/resources.hpp"
