@@ -405,7 +405,7 @@ void Master::initialize()
       &ExitedExecutorMessage::executor_id,
       &ExitedExecutorMessage::status);
 
-  installProtobufHandler<UsageMessage>(&Master::updateUsage);
+  install<UsageMessage>(&Master::updateUsage);
 
   // Setup HTTP request handlers.
   route("vars", bind(&http::vars, cref(*this), params::_1));
