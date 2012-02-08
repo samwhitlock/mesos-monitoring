@@ -52,7 +52,7 @@ Try<UsageReport> ResourceMonitor::collectUsage()
   Try<double> memUsage = collector->getMemoryUsage();
   if (memUsage.isSome()) {
     Resource memory;
-    memory.set_type(Resource::SCALAR);
+    memory.set_type(Value::SCALAR);
     memory.set_name("mem_usage");
     memory.mutable_scalar()->set_value(memUsage.get());
     resources += memory;
@@ -64,7 +64,7 @@ Try<UsageReport> ResourceMonitor::collectUsage()
   if (cpuUsage.isSome()) {
     Rate rate = cpuUsage.get();
     Resource cpu;
-    cpu.set_type(Resource::SCALAR);
+    cpu.set_type(Value::SCALAR);
     cpu.set_name("cpu_usage");
     cpu.mutable_scalar()->set_value(rate.difference);
     duration = rate.duration;
