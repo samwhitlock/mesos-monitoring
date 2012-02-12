@@ -28,38 +28,41 @@ namespace monitoring {
 
 // A single measurement of resources. Some resources may be measured relative
 // to a previous measurement, and are therefore associated with a duration.
-struct UsageReport {
-  UsageReport(Resources _resources,
-              const double _timestamp,
-              const double _duration)
-          : resources(_resources),
-            timestamp(_timestamp),
-            duration(_duration) {}
-
-  // The collection of resources measured.
-  Resources resources;
-
-  // The timestamp of the end of the measurement period (ms since epoch).
-  double timestamp;
-
-  // The duration of time the resources are measured over (ms).
-  double duration;
-};
+// struct UsageReport {
+//   UsageReport(Resources _resources,
+//               const double _timestamp,
+//               const double _duration)
+//           : resources(_resources),
+//             timestamp(_timestamp),
+//             duration(_duration) {}
+// 
+//   // The collection of resources measured.
+//   Resources resources;
+// 
+//   // The timestamp of the end of the measurement period (ms since epoch).
+//   double timestamp;
+// 
+//   // The duration of time the resources are measured over (ms).
+//   double duration;
+// };
 
 // An abstract module for collecting resource usage reports for current
 // resource utilization.
-class ResourceMonitor
+class ResourceMonitor : public Process<ResourceMonitor> //TODO(sam) include libprocess thing
 {
 public:
   ResourceMonitor(ResourceCollector* collector);
 
   virtual ~ResourceMonitor();
 
+  // TODO(sam): fix up documentation to make things simpler
   // Collects resource usage statistics and returns a UsageReport describing
   // them. For applicable resource, each call reports usage over the time period
   // since the previous invocation. For the first invocation, returns the total
   // usage since the initialization of the resource being monitored.
-  virtual Try<UsageReport> collectUsage();
+  virtual Future<UsageMessage> collectUsage(const FrameworkID& frameworkId,
+                                            const ExecutorID& executorId);
+
 
 protected:
   ResourceCollector* collector;

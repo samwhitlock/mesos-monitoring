@@ -1425,37 +1425,35 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
   }
 }
 
-void Slave::queueUsageUpdates() {
+void Slave::queueUsageUpdates()
+{
+  std::set<Future<UsageMessage> >* futures = new std::set<Future<UsageMessage> >();
+  //TODO is this the correct way to iterate through the executors?
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
-      dispatch(isolationModule,
-               &IsolationModule::sampleUsage,
-               frameworkId, executorId);
+      //TODO this is the method that needs to build the set and use select to 
+      //delay dispatch for success
+      // futures->insert(SOME CALL TO isolation module that returns the usage);
+      // dispatch(isolationModule,
+      //          &IsolationModule::sampleUsage,
+      //          frameworkId, executorId);
     }
   }
-  delay(1.0, self(), &Slave::queueUsageUpdates);
+  
+  Future<Future<UsageMessage> > future = select(*futures);
+  future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
+
+  delay(2.0, self(), &Slave::queueUsageUpdates);
 }
 
-void Slave::sendUsageUpdate(UsageMessage& update,
-                            const FrameworkID& frameworkId,
-                            const ExecutorID& executorId)
+void retrieveUsage(const Future<Future<UsageMessage> >& future,
+                   std::set<Future<UsageMessage> >* futures)
 {
-  //TODO(sam): is this thread safe?
-  //it is being called via dispatch from the isolation modules
-  Framework* framework = getFramework(frameworkId);
-  if (framework != NULL) {
-    Executor* executor = framework->getExecutor(executorId);
-    if (executor != NULL) {
-      executor->currentUsage = update;
-    } else {
-      LOG(INFO) << "usage update sent for non-existent executor: "
-        << executorId << ", for frameworkId: " << frameworkId;
-    }
-  } else {
-    LOG(INFO) << "usage update sent for non-existent framework: "
-      << frameworkId << ", with executorID " << executorId;
-  }
+  //TODO this is the method that collects the futures as the become 
+  //available.
+  //
+  //TODO make sure to GC futures if it is empty
 }
 
 } // namespace slave {

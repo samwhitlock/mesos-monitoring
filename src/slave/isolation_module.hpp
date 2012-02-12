@@ -66,10 +66,10 @@ public:
                                 const ExecutorID& executorId,
                                 const Resources& resources) = 0;
 
-  // Sample the resource usage for a given executor. Should asynchronously
-  // callback the slave.
-  virtual void sampleUsage(const FrameworkID& frameworkId,
-                         const ExecutorID& executorId) {};
+  // Sample the resource usage for a given executor.
+  // Returns a Future in to prevent usage sampling from blocking.
+  virtual Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
+                                           const ExecutorID& executorId) {};//TODO(sam) build failure implementation here!
 };
 
 }}} // namespace mesos { namespace internal { namespace slave {

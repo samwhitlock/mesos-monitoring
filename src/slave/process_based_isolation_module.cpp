@@ -238,10 +238,10 @@ void ProcessBasedIsolationModule::processExited(pid_t pid, int status)
 }
 
 
-void ProcessBasedIsolationModule::sampleUsage(const FrameworkID& frameworkId,
-                                     const ExecutorID& executorId)
+Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
+    const FrameworkID& frameworkId, const ExecutorID& executorId)
 {
-  ProcessInfo* info = infos[frameworkId][executorId];
+  ProcessInfo* info = infos[frameworkId][executorId];//TODO should this be accessed through some sort of accessor method?
 
   CHECK(info->pid != -1);
 
@@ -249,22 +249,23 @@ void ProcessBasedIsolationModule::sampleUsage(const FrameworkID& frameworkId,
 
   // Send it to the slave.
   if (resourceMonitor != NULL) { // NULL on unsupported platforms.
-    Try<UsageReport> ur = resourceMonitor->collectUsage();
-    if (ur.isSome()) {
-      UsageReport usageReport = ur.get();
+    return resourceMonitor->collectUsage(frameworkId, executorId);
+    // Try<UsageReport> ur = resourceMonitor->collectUsage();
+    // if (ur.isSome()) {
+    //   UsageReport usageReport = ur.get();
 
-      // Convert the report to a usage message.
-      UsageMessage usage;
-      usage.mutable_framework_id()->MergeFrom(frameworkId);
-      usage.mutable_executor_id()->MergeFrom(executorId);
-      usage.mutable_resources()->MergeFrom(usageReport.resources);
-      usage.set_timestamp(usageReport.timestamp);
-      usage.set_duration(usageReport.duration);
+    //   // Convert the report to a usage message.
+    //   UsageMessage usage;
+    //   usage.mutable_framework_id()->MergeFrom(frameworkId);
+    //   usage.mutable_executor_id()->MergeFrom(executorId);
+    //   usage.mutable_resources()->MergeFrom(usageReport.resources);
+    //   usage.set_timestamp(usageReport.timestamp);
+    //   usage.set_duration(usageReport.duration);
 
-      // Send it to the slave.
-      dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
-    } else {
-      LOG(ERROR) << ur.error();
-    }
+    //   // Send it to the slave.
+    //   dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
+  } else {
+    //TODO(sam) throw a failed Future back up the stack
+    LOG(ERROR) << ur.error();
   }
 }

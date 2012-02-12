@@ -94,10 +94,6 @@ public:
                        const ExecutorID& executorId,
                        const std::string& data);
 
-  void sendUsageUpdate(UsageMessage& update,
-                       const FrameworkID& frameworkId,
-                       const ExecutorID& executorId);
-
   void ping(const UPID& from, const std::string& body);
 
   void statusUpdateTimeout(const FrameworkID& frameworkId, const UUID& uuid);
@@ -143,6 +139,10 @@ protected:
   std::string createUniqueWorkDirectory(const FrameworkID& frameworkId,
                                         const ExecutorID& executorId);
 
+  // Ask the slave to update the UsageMessage instance in all executor
+  // info structs.
+  // TODO (sam,*): This needs to be organized better instead of hard-
+  // coded to do a 1-second delay.
   void queueUsageUpdates();
 
 private:
@@ -160,6 +160,11 @@ private:
   friend Future<HttpResponse> http::json::state(
       const Slave& slave,
       const HttpRequest& request);
+
+  // Method to collect UsageMessage instances from requests made
+  // to isolation module (and subsequently to ResourceMonitor).
+  void retrieveUsage(const Future<Future<UsageMessage> >& future,
+      std::set<Future<UsageMessage> >* futures);
 
   const Configuration conf;
 

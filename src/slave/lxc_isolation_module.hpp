@@ -59,8 +59,8 @@ public:
 
   virtual void processExited(pid_t pid, int status);
 
-  virtual void sampleUsage(const FrameworkID& frameworkId,
-                           const ExecutorID& executorId);
+  virtual Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
+                                           const ExecutorID& executorId);
 
 private:
   // No copying, no assigning.

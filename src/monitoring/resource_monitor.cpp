@@ -38,8 +38,11 @@ ResourceMonitor::~ResourceMonitor()
 
 // The default implementation collects only the cpu and memory
 // for use in creating a UsageMessage
-Try<UsageReport> ResourceMonitor::collectUsage()
+Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkId,
+                                                   const ExecutorID& executorId)
 {
+  //TODO(adegtiar or sam) rework this method to return a Future of a UsageMessage,
+  //or a error Future if need be
   Resources resources;
   double now = Clock::now();
   double duration = 0;
