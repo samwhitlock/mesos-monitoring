@@ -28,7 +28,6 @@
 #include "common/type_utils.hpp"
 #include "common/units.hpp"
 #include "common/utils.hpp"
-#include "monitoring/resource_monitor.hpp"
 #include "monitoring/linux/lxc_resource_collector.hpp"
 
 #include "launcher/launcher.hpp"
@@ -381,9 +380,9 @@ Future<UsageMessage> LxcIsolationModule::sampleUsage(const FrameworkID& framewor
   ContainerInfo* info = infos[frameworkId][executorId];//TODO(sam): should this be retrieved more safely (like through an accessor)
 
   CHECK(info->container != "");
-  //TODO(sam): return the future by calling collect Usage on the resource monitor
   return info->resourceMonitor->collectUsage(frameworkId, executorId);
-// 
+
+//TODO(sam) delete when you're sure this isn't needed
 //   Try<UsageReport> ur = info->resourceMonitor->collectUsage();
 // 
 //   if (ur.isSome()) {

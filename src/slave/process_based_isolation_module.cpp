@@ -250,6 +250,8 @@ Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
   // Send it to the slave.
   if (resourceMonitor != NULL) { // NULL on unsupported platforms.
     return resourceMonitor->collectUsage(frameworkId, executorId);
+
+    // TODO(sam): delete when you're sure this is no longer needed
     // Try<UsageReport> ur = resourceMonitor->collectUsage();
     // if (ur.isSome()) {
     //   UsageReport usageReport = ur.get();
@@ -265,7 +267,8 @@ Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
     //   // Send it to the slave.
     //   dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
   } else {
-    //TODO(sam) throw a failed Future back up the stack
-    LOG(ERROR) << ur.error();
+    Promise p;
+    p.fail("resource monitoring not supported on this platform");
+    return p.future();
   }
 }

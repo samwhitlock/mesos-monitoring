@@ -16,17 +16,13 @@
  * limitations under the License.
  */
 
-#include <glog/logging.h>
-
-#include <process/process.hpp>
-
-#include "monitoring/resource_monitor.hpp"
+#include "resource_monitor.hpp"
 
 using process::Clock;
 
 namespace mesos {
 namespace internal {
-namespace monitoring {
+namespace slave {
 
 ResourceMonitor::ResourceMonitor(ResourceCollector* _collector)
   : collector(_collector) {}
@@ -41,8 +37,7 @@ ResourceMonitor::~ResourceMonitor()
 Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkId,
                                                    const ExecutorID& executorId)
 {
-  //TODO(adegtiar or sam) rework this method to return a Future of a UsageMessage,
-  //or a error Future if need be
+  Promise<UsageMessage> p;
   Resources resources;
   double now = Clock::now();
   double duration = 0;
@@ -60,7 +55,8 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
     memory.mutable_scalar()->set_value(memUsage.get());
     resources += memory;
   } else {
-    return Try<UsageReport>::error(memUsage.error());
+    p.fail(memUsage.error());
+    return p.future();
   }
 
   Try<Rate> cpuUsage = collector->getCpuUsage();
@@ -73,14 +69,22 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
     duration = rate.duration;
     resources += cpu;
   } else {
-    return Try<UsageReport>::error(cpuUsage.error());
+    p.fail(cpuUsage.error());
+    return p.future();
   }
+
   // TODO(adegtiar or sam): Consider returning partial usage reports.
   // For now if one fails, the other will almost certainly fail, and
   // so may not be worthwhile. This could change.
-  return UsageReport(resources, now, duration);
+  // return UsageReport(resources, now, duration);
+
+  // TODO(adegtiar): if it got this far, both calls succeeded
+  // 1. assemble a UsageReport
+  // 2. call p.set(usageReport)
+  // I'll take care of the other stuff
+  return p.future();
 }
 
-} // namespace monitoring {
+} // namespace slave {
 } // namespace internal {
 } // namespace mesos {

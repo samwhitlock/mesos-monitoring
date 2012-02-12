@@ -24,6 +24,7 @@
 #include <mesos/mesos.hpp>
 
 #include <process/process.hpp>
+#include <process/future.hpp>
 
 #include "configurator/configuration.hpp"
 

@@ -25,9 +25,9 @@
 #include "isolation_module.hpp"
 #include "reaper.hpp"
 #include "slave.hpp"
+#include "resource_monitor.hpp"
 
 #include "common/hashmap.hpp"
-#include "monitoring/resource_monitor.hpp"
 
 
 namespace mesos { namespace internal { namespace slave {

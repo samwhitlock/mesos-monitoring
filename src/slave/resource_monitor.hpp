@@ -19,36 +19,19 @@
 #ifndef __RESOURCE_MONITOR_HPP__
 #define __RESOURCE_MONITOR_HPP__
 
+#include "messages/messages.hpp"//TODO(sam): is this the correct include for {framework,executo}ID?
+
 #include "common/resources.hpp"
-#include "resource_collector.hpp"
+#include "monitoring/resource_collector.hpp"
+#include <process/process.hpp>
 
 namespace mesos {
 namespace internal {
-namespace monitoring {
-
-// A single measurement of resources. Some resources may be measured relative
-// to a previous measurement, and are therefore associated with a duration.
-// struct UsageReport {
-//   UsageReport(Resources _resources,
-//               const double _timestamp,
-//               const double _duration)
-//           : resources(_resources),
-//             timestamp(_timestamp),
-//             duration(_duration) {}
-// 
-//   // The collection of resources measured.
-//   Resources resources;
-// 
-//   // The timestamp of the end of the measurement period (ms since epoch).
-//   double timestamp;
-// 
-//   // The duration of time the resources are measured over (ms).
-//   double duration;
-// };
+namespace slave {
 
 // An abstract module for collecting resource usage reports for current
 // resource utilization.
-class ResourceMonitor : public Process<ResourceMonitor> //TODO(sam) include libprocess thing
+class ResourceMonitor : public Process<ResourceMonitor>
 {
 public:
   ResourceMonitor(ResourceCollector* collector);
@@ -63,12 +46,11 @@ public:
   virtual Future<UsageMessage> collectUsage(const FrameworkID& frameworkId,
                                             const ExecutorID& executorId);
 
-
 protected:
   ResourceCollector* collector;
 };
 
-} // namespace monitoring {
+} // namespace slave {
 } // namespace internal {
 } // namespace mesos {
 
