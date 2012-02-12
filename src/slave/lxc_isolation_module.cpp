@@ -381,26 +381,6 @@ Future<UsageMessage> LxcIsolationModule::sampleUsage(const FrameworkID& framewor
 
   CHECK(info->container != "");
   return info->resourceMonitor->collectUsage(frameworkId, executorId);
-
-//TODO(sam) delete when you're sure this isn't needed
-//   Try<UsageReport> ur = info->resourceMonitor->collectUsage();
-// 
-//   if (ur.isSome()) {
-//     UsageReport usageReport = ur.get();
-// 
-//     // Convert the report to a usage message.
-//     UsageMessage usage;
-//     usage.mutable_framework_id()->MergeFrom(frameworkId);
-//     usage.mutable_executor_id()->MergeFrom(executorId);
-//     usage.mutable_resources()->MergeFrom(usageReport.resources);
-//     usage.set_timestamp(usageReport.timestamp);
-//     usage.set_duration(usageReport.duration);
-// 
-//     // Send it to the slave.
-//     dispatch(slave, &Slave::sendUsageUpdate, usage, frameworkId, executorId);
-//   } else {
-//       LOG(ERROR) << ur.error();
-//   }
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(

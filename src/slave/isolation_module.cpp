@@ -50,4 +50,13 @@ void IsolationModule::destroy(IsolationModule* module)
   }
 }
 
+
+Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
+                                 const ExecutorID& executorId)
+{
+  Promise<UsageMessage> p;
+  p.fail("usage sampling not available with this isolation module");
+  return p.future();
+}
+
 }}} // namespace mesos { namespace internal { namespace slave {

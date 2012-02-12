@@ -273,6 +273,8 @@ void Slave::initialize()
   install<ShutdownMessage>(
       &Slave::shutdown);
   
+  //TODO(monitoring): install UsageMessage here?
+  
   // Install the ping message handler.
   install("PING", &Slave::ping);
 
@@ -1432,15 +1434,11 @@ void Slave::queueUsageUpdates()
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
-      //TODO this is the method that needs to build the set and use select to 
-      //delay dispatch for success
-      // futures->insert(SOME CALL TO isolation module that returns the usage);
-      // dispatch(isolationModule,
-      //          &IsolationModule::sampleUsage,
-      //          frameworkId, executorId);
+      futures->insert(isolationModule->sampleUsage(frameworkId, executorId));
     }
   }
   
+  //TODO(sam): do we need to check if futures is empty?
   Future<Future<UsageMessage> > future = select(*futures);
   future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
 

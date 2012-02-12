@@ -17,6 +17,7 @@
  */
 
 #include "resource_monitor.hpp"
+#include "common/resources.hpp"
 
 using process::Clock;
 

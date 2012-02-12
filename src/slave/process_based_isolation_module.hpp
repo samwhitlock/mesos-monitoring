@@ -62,8 +62,8 @@ public:
 
   virtual void processExited(pid_t pid, int status);
 
-  Future<UsageMessage> void sampleUsage(const FrameworkID& frameworkId,
-                                        const ExecutorID& executorId);
+  virtual Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
+                                           const ExecutorID& executorId);
 
 protected:
   // Main method executed after a fork() to create a Launcher for launching

@@ -19,11 +19,11 @@
 #ifndef __RESOURCE_MONITOR_HPP__
 #define __RESOURCE_MONITOR_HPP__
 
-#include "messages/messages.hpp"//TODO(sam): is this the correct include for {framework,executo}ID?
-
-#include "common/resources.hpp"
-#include "monitoring/resource_collector.hpp"
 #include <process/process.hpp>
+
+#include "messages/messages.hpp"
+
+#include "monitoring/resource_collector.hpp"
 
 namespace mesos {
 namespace internal {
@@ -38,7 +38,6 @@ public:
 
   virtual ~ResourceMonitor();
 
-  // TODO(sam): fix up documentation to make things simpler
   // Collects resource usage statistics and returns a UsageReport describing
   // them. For applicable resource, each call reports usage over the time period
   // since the previous invocation. For the first invocation, returns the total
