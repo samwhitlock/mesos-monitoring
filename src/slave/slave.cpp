@@ -1448,10 +1448,19 @@ void Slave::queueUsageUpdates()
 void retrieveUsage(const Future<Future<UsageMessage> >& future,
                    std::set<Future<UsageMessage> >* futures)
 {
-  //TODO this is the method that collects the futures as the become 
-  //available.
-  //
-  //TODO make sure to GC futures if it is empty
+  //FIXME(sam): this assumes futures are always ready, but still WIP
+  futures->erase(future.get());
+
+  //TODO(sam,alex): put the UsageMessage back into the correct place
+  //extract the FrameworkID and ExecutorID from the value and use that to
+  //put it back into the correct place.
+
+  if (!futures->empty()) {
+    Future<Future<UsageMessage> > future = select(*futures);
+    future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
+  } else {
+    delete futures;
+  }
 }
 
 } // namespace slave {
