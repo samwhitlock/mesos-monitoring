@@ -1457,10 +1457,19 @@ void retrieveUsage(const Future<Future<UsageMessage> >& future,
 
   //TODO(sam): what states can the future be in here?
   if (f.isReady()) {
+    //TODO(sam,alex): use the framework and executor Id fields to 
+    //lookup the executor and assign the currentUsage attribute
+
+    //There are so many checks here because the executor and framework
+    //may have died in already
     UsageMessage um = f.get();
-    //TODO(sam,alex): put the UsageMessage back into the correct place
-    //extract the FrameworkID and ExecutorID from the value and use that to
-    //put it back into the correct place.
+    Framework f = getFramework(um.frameworkId);
+    if (f != NULL) {
+      Executor e = f.getExecutor(um.executorId);
+      if (e != NULL) {
+        e->currentUsage = um;
+      }
+    }
   }
 
   if (!futures->empty()) {
