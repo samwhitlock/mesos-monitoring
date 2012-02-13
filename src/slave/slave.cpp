@@ -1445,18 +1445,23 @@ void Slave::queueUsageUpdates()
     future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
   }
 
-  delay(2.0, self(), &Slave::queueUsageUpdates);
+  delay(2.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
 }
 
 void retrieveUsage(const Future<Future<UsageMessage> >& future,
                    std::set<Future<UsageMessage> >* futures)
 {
-  //FIXME(sam): this assumes futures are always ready, but still WIP
-  futures->erase(future.get());
+  //TODO(sam): would future ever not be in a ready state here?
+  Future<UsageMessage> f = future.get();
+  futures->erase(f);
 
-  //TODO(sam,alex): put the UsageMessage back into the correct place
-  //extract the FrameworkID and ExecutorID from the value and use that to
-  //put it back into the correct place.
+  //TODO(sam): what states can the future be in here?
+  if (f.isReady()) {
+    UsageMessage um = f.get();
+    //TODO(sam,alex): put the UsageMessage back into the correct place
+    //extract the FrameworkID and ExecutorID from the value and use that to
+    //put it back into the correct place.
+  }
 
   if (!futures->empty()) {
     Future<Future<UsageMessage> > future = select(*futures);
