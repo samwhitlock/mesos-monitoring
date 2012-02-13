@@ -1438,9 +1438,12 @@ void Slave::queueUsageUpdates()
     }
   }
   
-  //TODO(sam): do we need to check if futures is empty?
-  Future<Future<UsageMessage> > future = select(*futures);
-  future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
+  if (futures->empty()) {
+    delete futures;
+  } else {
+    Future<Future<UsageMessage> > future = select(*futures);
+    future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
+  }
 
   delay(2.0, self(), &Slave::queueUsageUpdates);
 }
