@@ -380,6 +380,7 @@ Future<UsageMessage> LxcIsolationModule::sampleUsage(const FrameworkID& framewor
   ContainerInfo* info = infos[frameworkId][executorId];//TODO(sam): should this be retrieved more safely (like through an accessor)
 
   CHECK(info->container != "");
+  //TODO(sam): you have to use dispatch for this to be asynchronous!
   return info->resourceMonitor->collectUsage(frameworkId, executorId);
 }
 

@@ -1434,6 +1434,7 @@ void Slave::queueUsageUpdates()
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
+      //TODO(sam): you have to use dispatch for this to be asynchronous!
       futures->insert(isolationModule->sampleUsage(frameworkId, executorId));
     }
   }
