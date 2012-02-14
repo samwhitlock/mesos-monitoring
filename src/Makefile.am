@@ -19,6 +19,8 @@
 # master/http.cpp and slave/http.cpp.
 AUTOMAKE_OPTIONS = subdir-objects
 
+# TODO(charles): Move these into an included automakefile and have
+# them include $(top_builddir) as appropriate.
 BOOST = third_party/boost-1.37.0
 PROTOBUF = third_party/protobuf-2.3.0
 GLOG = third_party/glog-0.3.1
@@ -45,7 +47,8 @@ pythoneggdir = $(pythondir)
 javalibdir = $(libdir)/java
 
 # Used for building Python eggs.
-SETUPTOOLS = third_party/distribute-0.6.19/distribute-0.6.19-py2.6.egg
+SETUPTOOLS = \
+  $(abs_top_srcdir)/third_party/distribute-0.6.19/distribute-0.6.19-py2.6.egg
 
 # Protocol buffer compiler.
 PROTOC = ../$(PROTOBUF)/src/protoc
@@ -77,15 +80,15 @@ MESOS_CPPFLAGS = $(AM_CPPFLAGS)
 MESOS_CPPFLAGS += -DMESOS_WEBUI_DIR=\"$(webuidir)/webui\"
 MESOS_CPPFLAGS += -DMESOS_LIBEXECDIR=\"$(pkglibexecdir)\"
 MESOS_CPPFLAGS += -I$(top_srcdir)/include
-MESOS_CPPFLAGS += -I$(top_srcdir)/$(BOOST)
-MESOS_CPPFLAGS += -I$(top_srcdir)/$(PROTOBUF)/src
-MESOS_CPPFLAGS += -I$(top_srcdir)/$(GLOG)/src
-MESOS_CPPFLAGS += -I$(top_builddir)/$(GLOG)/src
 MESOS_CPPFLAGS += -I$(top_srcdir)/$(LIBPROCESS)/include
+MESOS_CPPFLAGS += -I../$(BOOST)
+MESOS_CPPFLAGS += -I../$(PROTOBUF)/src
+MESOS_CPPFLAGS += -I../$(GLOG)/src
+MESOS_CPPFLAGS += -I../$(GLOG)/src
 
 if WITH_INCLUDED_ZOOKEEPER
-  MESOS_CPPFLAGS += -I$(top_srcdir)/$(ZOOKEEPER)/include
-  MESOS_CPPFLAGS += -I$(top_srcdir)/$(ZOOKEEPER)/generated
+  MESOS_CPPFLAGS += -I../$(ZOOKEEPER)/include
+  MESOS_CPPFLAGS += -I../$(ZOOKEEPER)/generated
 endif
 
 
@@ -274,13 +277,13 @@ libmesos_la_LIBADD = libmesos_no_third_party.la
 # For non-convenience libraries we need to link them in to make the shared
 # library each time. (Currently, we don't support platforms where this is not
 # possible.)
-libmesos_la_LIBADD += $(top_builddir)/$(PROTOBUF)/src/.libs/libprotobuf.la
-libmesos_la_LIBADD += $(top_builddir)/$(GLOG)/.libs/libglog.la
-libmesos_la_LIBADD += $(top_builddir)/$(LIBPROCESS)/libprocess.a
-libmesos_la_LIBADD += $(top_builddir)/$(LIBEV)/.libs/libev.la
+libmesos_la_LIBADD += ../$(PROTOBUF)/src/.libs/libprotobuf.la
+libmesos_la_LIBADD += ../$(GLOG)/.libs/libglog.la
+libmesos_la_LIBADD += ../$(LIBPROCESS)/libprocess.a
+libmesos_la_LIBADD += ../$(LIBEV)/.libs/libev.la
 
 if WITH_INCLUDED_ZOOKEEPER
-  libmesos_la_LIBADD += $(top_builddir)/$(ZOOKEEPER)/.libs/libzookeeper_mt.a
+  libmesos_la_LIBADD += ../$(ZOOKEEPER)/.libs/libzookeeper_mt.a
 endif
 
 
@@ -370,15 +373,16 @@ if HAS_JAVA
 # Protocol buffers JAR.
 PROTOBUF_JAR = ../protobuf.jar
 
+# TODO(charles): Move into third_party/Makefile.am.
 $(PROTOBUF_JAR): # TODO(charles): Specify dependencies for the jar.
 	@echo "Building protobuf.jar ..."
 	@$(MKDIR_P) ../$(PROTOBUF)/java/src/main/java
-	@$(PROTOC) --java_out=$(top_builddir)/$(PROTOBUF)/java/src/main/java \
-          -I$(top_srcdir)/$(PROTOBUF)/src \
-          $(top_srcdir)/$(PROTOBUF)/src/google/protobuf/descriptor.proto
+	@$(PROTOC) --java_out=../$(PROTOBUF)/java/src/main/java \
+          -I../$(PROTOBUF)/src \
+          ../$(PROTOBUF)/src/google/protobuf/descriptor.proto
 	@$(JAVA_HOME)/bin/javac \
           -d ../$(PROTOBUF)/java/src/main/java \
-          $(top_srcdir)/$(PROTOBUF)/java/src/main/java/com/google/protobuf/*.java \
+          ../$(PROTOBUF)/java/src/main/java/com/google/protobuf/*.java \
           ../$(PROTOBUF)/java/src/main/java/com/google/protobuf/*.java
 	@$(JAVA_HOME)/bin/jar cf $@ -C ../$(PROTOBUF)/java/src/main/java com
 
@@ -529,14 +533,8 @@ PROTOBUF_EGG =								\
 
 $(PROTOBUF_EGG):
 	@echo "Building protobuf Python egg ..."
-	@if test "$(top_srcdir)" != "$(top_builddir)"; then \
-	  cp -rf $(top_srcdir)/$(PROTOBUF)/python ../$(PROTOBUF); \
-	  $(MKDIR_P) ../$(PROTOBUF)/src/google/protobuf; \
-	  cp -pf $(top_srcdir)/$(PROTOBUF)/src/google/protobuf/descriptor.proto \
-	    ../$(PROTOBUF)/src/google/protobuf; \
-	fi
 	@cd ../$(PROTOBUF)/python && \
-	  PYTHONPATH=../../../$(SETUPTOOLS) $(PYTHON) setup.py bdist_egg
+	  PYTHONPATH=$(SETUPTOOLS) $(PYTHON) setup.py bdist_egg
 
 CLEANFILES += $(PROTOBUF_EGG)
 
@@ -550,7 +548,7 @@ $(MESOS_EGG): python/setup.py $(srcdir)/python/src/mesos.py	\
 	  $(MKDIR_P) python/src; \
 	  cp -pf $(srcdir)/python/src/mesos.py python/src; \
 	fi
-	@PYTHONPATH=../$(SETUPTOOLS) $(PYTHON) python/setup.py bdist_egg
+	@PYTHONPATH=$(SETUPTOOLS) $(PYTHON) python/setup.py bdist_egg
 
 CLEANFILES += $(MESOS_EGG) python/build/temp.*/native/*.o python/build/lib.*/*
 
@@ -631,10 +629,10 @@ mesos_tests_SOURCES = tests/main.cpp tests/utils.cpp			\
 mesos_tests_CPPFLAGS = $(MESOS_CPPFLAGS)
 mesos_tests_CPPFLAGS += -DSOURCE_DIR=\"$(abs_top_srcdir)\"
 mesos_tests_CPPFLAGS += -DBUILD_DIR=\"$(abs_top_builddir)\"
-mesos_tests_CPPFLAGS += -I$(top_srcdir)/$(GTEST)/include
-mesos_tests_CPPFLAGS += -I$(top_srcdir)/$(GMOCK)/include
+mesos_tests_CPPFLAGS += -I../$(GTEST)/include
+mesos_tests_CPPFLAGS += -I../$(GMOCK)/include
 
-mesos_tests_LDADD = ../.libs/libgmock.la libmesos.la
+mesos_tests_LDADD = ../third_party/libgmock.la libmesos.la
 
 mesos_tests_DEPENDENCIES = # Initialized to allow += below.
 
@@ -679,7 +677,7 @@ dist_check_SCRIPTS += $(EXTERNALSCRIPTS)
 TESTS += mesos-tests
 
 clean-check:
-	-rm -rf $(top_builddir)/test_output
+	-rm -rf ../test_output
 
 PHONY_TARGETS += clean-check
 

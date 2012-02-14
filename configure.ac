@@ -47,9 +47,18 @@ LT_OUTPUT
 AS_IF([test "x${ac_cv_env_CFLAGS_set}" = "x"], [CFLAGS=""])
 AS_IF([test "x${ac_cv_env_CXXFLAGS_set}" = "x"], [CXXFLAGS=""])
 
-# Force all third_party libraries to only build static libraries so
+# Save the configure arguments so we can pass them to any third_party
+# libraries that we might run configure on (see
+# third_party/Makefile.am). One downside of our strategy for shipping
+# and building third_party libraries is that we can't expose options
+# from nested third_party configure scripts.
+CONFIGURE_ARGS="$ac_configure_args"
+AC_SUBST(CONFIGURE_ARGS)
+
+# Force configured third_party libraries (currently only libprocess)
+# to only build a static library with position independent code so
 # that we can produce a final shared library which includes everything
-# necessary.
+# necessary (and only install that).
 ac_configure_args_pre="$ac_configure_args"
 ac_configure_args_post="$ac_configure_args --enable-shared=no --with-pic"
 ac_configure_args="$ac_configure_args_post"
@@ -62,11 +71,10 @@ AC_CONFIG_COMMANDS_PRE([ac_configure_args="$ac_configure_args_pre"])
 AC_CONFIG_COMMANDS_POST([ac_configure_args="$ac_configure_args_post"])
 
 AC_CONFIG_SUBDIRS([third_party/libprocess])
-AC_CONFIG_SUBDIRS([third_party/protobuf-2.3.0])
-AC_CONFIG_SUBDIRS([third_party/glog-0.3.1])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
+AC_CONFIG_FILES([third_party/Makefile])
 AC_CONFIG_FILES([bin/mesos-build-env.sh])
 AC_CONFIG_FILES([bin/mesos-master.sh], [chmod +x bin/mesos-master.sh])
 AC_CONFIG_FILES([bin/mesos-slave.sh], [chmod +x bin/mesos-slave.sh])
@@ -355,12 +363,6 @@ if test "x$enable_optimize" = "xyes"; then
   fi
 fi
 
-
-# Configure the included ZooKeeper if necessary, if not consider
-# checking the installed ZooKeeper version.
-if test "x$with_included_zookeeper" = "xyes"; then
-  AC_CONFIG_SUBDIRS([third_party/zookeeper-3.3.1/src/c])
-fi
 
 AM_CONDITIONAL([WITH_INCLUDED_ZOOKEEPER],
                [test "x$with_included_zookeeper" = "xyes"])
