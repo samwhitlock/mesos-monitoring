@@ -22,6 +22,7 @@
 #include <iomanip>
 
 #include <process/timer.hpp>
+#include <process/defer.hpp>
 
 #include "common/build.hpp"
 #include "common/option.hpp"
@@ -1456,9 +1457,10 @@ void Slave::queueUsageUpdates()
   delay(2.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
 }
 
-void retrieveUsage(const Future<Future<UsageMessage> >& future,
-                   std::set<Future<UsageMessage> >* futures)
+void Slave::retrieveUsage(const Future<Future<UsageMessage> >& future,
+                          std::set<Future<UsageMessage> >* futures)
 {
+  using namespace process;
   //TODO(sam): would future ever not be in a ready state here?
   Future<UsageMessage> f = future.get();
   futures->erase(f);
@@ -1471,9 +1473,9 @@ void retrieveUsage(const Future<Future<UsageMessage> >& future,
     //There are so many checks here because the executor and framework
     //may have died in already
     UsageMessage um = f.get();
-    Framework f = getFramework(um.frameworkId);
+    Framework *f = getFramework(um.framework_id());
     if (f != NULL) {
-      Executor e = f.getExecutor(um.executorId);
+      Executor *e = f->getExecutor(um.executor_id());
       if (e != NULL) {
         e->currentUsage = um;
       }
