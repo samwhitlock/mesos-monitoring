@@ -70,7 +70,7 @@ public:
 
   // Sample the resource usage for a given executor.
   // Returns a Future in to prevent usage sampling from blocking.
-  virtual Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
+  virtual process::Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
                                            const ExecutorID& executorId);
 
 };

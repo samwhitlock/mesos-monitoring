@@ -31,6 +31,8 @@ namespace slave {
 
 // An abstract module for collecting resource usage reports for current
 // resource utilization.
+using mesos::internal::monitoring::ResourceCollector;
+
 class ResourceMonitor : public Process<ResourceMonitor>
 {
 public:
