@@ -241,6 +241,8 @@ void ProcessBasedIsolationModule::processExited(pid_t pid, int status)
 Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
     const FrameworkID& frameworkId, const ExecutorID& executorId)
 {
+  using namespace process;
+
   ProcessInfo* info = infos[frameworkId][executorId];//TODO should this be accessed through some sort of accessor method?
 
   CHECK(info->pid != -1);
@@ -253,7 +255,7 @@ Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
         &ResourceMonitor::collectUsage,
         frameworkId, executorId);
   } else {
-    Promise p;
+    Promise<UsageMessage> p;
     p.fail("resource monitoring not supported on this platform");
     return p.future();
   }

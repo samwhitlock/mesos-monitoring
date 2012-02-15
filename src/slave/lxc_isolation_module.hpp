@@ -87,7 +87,7 @@ private:
     ExecutorID executorId;
     std::string container; // Name of Linux container used for this framework.
     pid_t pid; // PID of lxc-execute command running the executor.
-    mesos::internal::monitoring::ResourceMonitor* resourceMonitor;
+    ResourceMonitor* resourceMonitor;
   };
 
   // TODO(benh): Make variables const by passing them via constructor.
