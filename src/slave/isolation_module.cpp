@@ -51,7 +51,7 @@ void IsolationModule::destroy(IsolationModule* module)
 }
 
 
-Future<UsageMessage> sampleUsage(const FrameworkID& frameworkId,
+Future<UsageMessage> IsolationModule::sampleUsage(const FrameworkID& frameworkId,
                                  const ExecutorID& executorId)
 {
   Promise<UsageMessage> p;

@@ -381,7 +381,9 @@ Future<UsageMessage> LxcIsolationModule::sampleUsage(const FrameworkID& framewor
 
   CHECK(info->container != "");
   //TODO(sam): you have to use dispatch for this to be asynchronous!
-  return info->resourceMonitor->collectUsage(frameworkId, executorId);
+  return dispatch(info->resourceMonitor,
+      &ResourceMonitor::collectUsage,
+      frameworkId, executorId);
 }
 
 vector<string> LxcIsolationModule::getControlGroupOptions(

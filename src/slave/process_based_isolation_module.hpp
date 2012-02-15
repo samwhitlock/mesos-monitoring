@@ -95,7 +95,7 @@ private:
     ExecutorID executorId;
     pid_t pid; // PID of the forked executor process.
     std::string directory; // Working directory of the executor.
-    mesos::internal::monitoring::ResourceMonitor* resourceMonitor;
+    ResourceMonitor* resourceMonitor;
   };
 
   // TODO(benh): Make variables const by passing them via constructor.

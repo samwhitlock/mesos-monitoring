@@ -249,7 +249,9 @@ Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
 
   if (resourceMonitor != NULL) { // NULL on unsupported platforms.
     //TODO(sam): you have to use dispatch for this to be asynchronous!
-    return resourceMonitor->collectUsage(frameworkId, executorId);
+    return dispatch(resourceMonitor,
+        &ResourceMonitor::collectUsage,
+        frameworkId, executorId);
   } else {
     Promise p;
     p.fail("resource monitoring not supported on this platform");
