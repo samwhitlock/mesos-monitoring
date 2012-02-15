@@ -19,15 +19,18 @@
 # master/http.cpp and slave/http.cpp.
 AUTOMAKE_OPTIONS = subdir-objects
 
+include ../third_party/versions.am
+
 # TODO(charles): Move these into an included automakefile and have
 # them include $(top_builddir) as appropriate.
-BOOST = third_party/boost-1.37.0
-PROTOBUF = third_party/protobuf-2.3.0
-GLOG = third_party/glog-0.3.1
-GMOCK = third_party/gmock-1.6.0
+BOOST = third_party/boost-$(BOOST_VERSION)
+DISTRIBUTE = third_party/distribute-$(DISTRIBUTE_VERSION)
+PROTOBUF = third_party/protobuf-$(PROTOBUF_VERSION)
+GLOG = third_party/glog-$(GLOG_VERSION)
+GMOCK = third_party/gmock-$(GMOCK_VERSION)
 GTEST = $(GMOCK)/gtest
 LEVELDB = third_party/leveldb
-ZOOKEEPER = third_party/zookeeper-3.3.1/src/c
+ZOOKEEPER = third_party/zookeeper-$(ZOOKEEPER_VERSION)/src/c
 LIBPROCESS = third_party/libprocess
 LIBEV = $(LIBPROCESS)/third_party/libev-3.8
 
@@ -48,7 +51,7 @@ javalibdir = $(libdir)/java
 
 # Used for building Python eggs.
 SETUPTOOLS = \
-  $(abs_top_srcdir)/third_party/distribute-0.6.19/distribute-0.6.19-py2.6.egg
+  $(abs_top_srcdir)/$(DISTRIBUTE)/distribute-$(DISTRIBUTE_VERSION)-py2.6.egg
 
 # Protocol buffer compiler.
 PROTOC = ../$(PROTOBUF)/src/protoc
@@ -60,16 +63,17 @@ noinst_LTLIBRARIES =
 sbin_PROGRAMS =
 bin_PROGRAMS =
 pkglibexec_PROGRAMS =
-dist_pkglibexec_SCRIPTS = 
+dist_pkglibexec_SCRIPTS =
 webui_SCRIPTS =
 nobase_dist_webui_SCRIPTS =
 check_PROGRAMS =
-dist_check_SCRIPTS = 
+dist_check_SCRIPTS =
+check_SCRIPTS =
 BUILT_SOURCES =
 TESTS =
 CLEANFILES =
 EXTRA_DIST =
-PHONY_TARGETS = 
+PHONY_TARGETS =
 
 # Add compiler and linker flags for pthreads.
 AM_CXXFLAGS = $(PTHREAD_CFLAGS)
@@ -286,17 +290,22 @@ if WITH_INCLUDED_ZOOKEEPER
   libmesos_la_LIBADD += ../$(ZOOKEEPER)/.libs/libzookeeper_mt.a
 endif
 
+if WEBUI
+  WEBUI_LIBS = libwebui.la
+else
+  WEBUI_LIBS =
+endif
 
 # Binaries.
 sbin_PROGRAMS += mesos-master
 mesos_master_SOURCES = master/main.cpp
 mesos_master_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_master_LDADD = libwebui.la libmesos.la
+mesos_master_LDADD = $(WEBUI_LIBS) libmesos.la
 
 sbin_PROGRAMS += mesos-slave
 mesos_slave_SOURCES = slave/main.cpp
 mesos_slave_CPPFLAGS = $(MESOS_CPPFLAGS)
-mesos_slave_LDADD = libwebui.la libmesos.la
+mesos_slave_LDADD = $(WEBUI_LIBS) libmesos.la
 
 bin_PROGRAMS += mesos-local
 mesos_local_SOURCES = local/main.cpp
@@ -527,9 +536,8 @@ if HAS_PYTHON
 # system versions of our dependencies (since we won't be able to
 # create a standalone egg anyways).
 
-# TODO(Charles Reiss): Don't hard code this verison number.
-PROTOBUF_EGG =								\
-  ../$(PROTOBUF)/python/dist/protobuf-2.3.0$(PYTHON_EGG_PUREPY_POSTFIX).egg
+PROTOBUF_EGG_SUFFIX = $(PROTOBUF_VERSION)$(PYTHON_EGG_PUREPY_POSTFIX).egg
+PROTOBUF_EGG = ../$(PROTOBUF)/python/dist/protobuf-$(PROTOBUF_EGG_SUFFIX)
 
 $(PROTOBUF_EGG):
 	@echo "Building protobuf Python egg ..."
@@ -642,24 +650,31 @@ if HAS_JAVA
                          tests/zookeeper_server_tests.cpp	\
                          tests/zookeeper_tests.cpp
   mesos_tests_CPPFLAGS += $(JAVA_CPPFLAGS)
+  mesos_tests_CPPFLAGS += -DZOOKEEPER_VERSION=\"$(ZOOKEEPER_VERSION)\"
   mesos_tests_LDFLAGS = $(JAVA_LDFLAGS) $(AM_LDFLAGS)
   mesos_tests_DEPENDENCIES += $(EXAMPLES_JAR)
+
+  EXAMPLESSCRIPTSJAVA = examples/java/test-framework			\
+			examples/java/test-executor			\
+			examples/java/test-exception-framework		\
+			examples/java/test-multiple-executors-framework
+
+  check_SCRIPTS += $(EXAMPLESCRIPTSJAVA)
+  mesos_tests_DEPENDENCIES += $(EXAMPLESCRIPTSJAVA)
 endif
 
 if HAS_PYTHON
   mesos_tests_DEPENDENCIES += $(MESOS_EGG)
+
+  EXAMPLESCRIPTSPYTHON = examples/python/test_framework.py	\
+			 examples/python/test-framework		\
+			 examples/python/test_executor.py	\
+			 examples/python/test-executor
+
+  check_SCRIPTS += $(EXAMPLESCRIPTSPYTHON)
+  mesos_tests_DEPENDENCIES += $(EXAMPLESCRIPTSPYTHON)
 endif
 
-EXAMPLESSCRIPTS = examples/java/test-framework				\
-                  examples/java/test-executor				\
-                  examples/java/test-exception-framework		\
-                  examples/java/test-multiple-executors-framework	\
-                  examples/python/test_framework.py			\
-                  examples/python/test-framework			\
-                  examples/python/test_executor.py			\
-                  examples/python/test-executor
-
-dist_check_SCRIPTS += $(EXAMPLESSCRIPTS)
 
 EXTERNALSCRIPTS =						\
   tests/external/LxcIsolation/HoldMoreMemThanRequested.sh	\
