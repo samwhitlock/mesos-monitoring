@@ -22,7 +22,7 @@
 #include <iomanip>
 
 #include <process/timer.hpp>
-#include <process/defer.hpp>
+#include <process/collect.hpp>
 
 #include "common/build.hpp"
 #include "common/option.hpp"
@@ -1438,11 +1438,10 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
 void Slave::queueUsageUpdates()
 {
   std::set<Future<UsageMessage> >* futures = new std::set<Future<UsageMessage> >();
-  //TODO is this the correct way to iterate through the executors?
+
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
-      //TODO(sam): you have to use dispatch for this to be asynchronous!
       futures->insert(isolationModule->sampleUsage(frameworkId, executorId));
     }
   }
@@ -1450,43 +1449,29 @@ void Slave::queueUsageUpdates()
   if (futures->empty()) {
     delete futures;
   } else {
-    Future<Future<UsageMessage> > future = select(*futures);
-    future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
+    Future<std::set<UsageMessage> > future = collect(*futures);
+    future.onAny(defer(self(), &Slave::retrieveUsage, future));
   }
 
   delay(2.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
 }
 
-void Slave::retrieveUsage(const Future<Future<UsageMessage> >& future,
-                          std::set<Future<UsageMessage> >* futures)
+void Slave::retrieveUsage(const Future<std::set<UsageMessage> >& future)
 {
-  using namespace process;
-  //TODO(sam): would future ever not be in a ready state here?
-  Future<UsageMessage> f = future.get();
-  futures->erase(f);
-
-  //TODO(sam): what states can the future be in here?
-  if (f.isReady()) {
-    //TODO(sam,alex): use the framework and executor Id fields to 
-    //lookup the executor and assign the currentUsage attribute
-
-    //There are so many checks here because the executor and framework
-    //may have died in already
-    UsageMessage um = f.get();
-    Framework *f = getFramework(um.framework_id());
-    if (f != NULL) {
-      Executor *e = f->getExecutor(um.executor_id());
-      if (e != NULL) {
-        e->currentUsage = um;
+  if (future.isReady()) {
+    std::set<UsageMessage> ums = future.get();
+    foreach (UsageMessage &um, ums) {
+      Framework *f = getFramework(um.framework_id());
+      if (f != NULL) {
+        Executor *e = f->getExecutor(um.executor_id());
+        if (e != NULL) {
+          e->currentUsage = um;
+        }
       }
     }
-  }
-
-  if (!futures->empty()) {
-    Future<Future<UsageMessage> > future = select(*futures);
-    future.onAny(defer(self(), &Slave::retrieveUsage, future, futures));
   } else {
-    delete futures;
+    assert(future.isFailed());
+    //TODO log future.failure()
   }
 }
 

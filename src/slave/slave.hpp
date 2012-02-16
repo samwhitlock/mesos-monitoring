@@ -164,8 +164,7 @@ private:
 
   // Method to collect UsageMessage instances from requests made
   // to isolation module (and subsequently to ResourceMonitor).
-  void retrieveUsage(const Future<Future<UsageMessage> >& future,
-      std::set<Future<UsageMessage> >* futures);
+  void retrieveUsage(const Future<std::set<UsageMessage> >& future);
 
   const Configuration conf;
 
