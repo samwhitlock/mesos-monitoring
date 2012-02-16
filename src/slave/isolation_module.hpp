@@ -28,7 +28,7 @@
 
 #include "configurator/configuration.hpp"
 
-// #include "common/resources.hpp"
+#include "common/resources.hpp"
 #include "messages/messages.hpp"
 
 
