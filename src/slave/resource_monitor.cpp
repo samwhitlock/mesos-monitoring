@@ -17,9 +17,13 @@
  */
 
 #include "resource_monitor.hpp"
+#include <mesos/mesos.hpp>
 #include "common/resources.hpp"//TODO(sam) do I even need this?
 
 using process::Clock;
+using process::Future;
+using process::Promise;
+using mesos::internal::monitoring::Rate;
 
 namespace mesos {
 namespace internal {
@@ -50,7 +54,7 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
   //   collector->getUsage(usageType); (+ Try stuff, etc)
   Try<double> memUsage = collector->getMemoryUsage();
   if (memUsage.isSome()) {
-    Resource memory;
+    ::mesos::Resource memory;
     memory.set_type(Value::SCALAR);
     memory.set_name("mem_usage");
     memory.mutable_scalar()->set_value(memUsage.get());
@@ -63,7 +67,7 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
   Try<Rate> cpuUsage = collector->getCpuUsage();
   if (cpuUsage.isSome()) {
     Rate rate = cpuUsage.get();
-    Resource cpu;
+    ::mesos::Resource cpu;
     cpu.set_type(Value::SCALAR);
     cpu.set_name("cpu_usage");
     cpu.mutable_scalar()->set_value(rate.difference);

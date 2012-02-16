@@ -20,10 +20,13 @@
 #define __RESOURCE_MONITOR_HPP__
 
 #include <process/process.hpp>
+#include <process/future.hpp>
 
 #include "messages/messages.hpp"
 
 #include "monitoring/resource_collector.hpp"
+
+using mesos::internal::monitoring::ResourceCollector;
 
 namespace mesos {
 namespace internal {
@@ -31,9 +34,8 @@ namespace slave {
 
 // An abstract module for collecting resource usage reports for current
 // resource utilization.
-using mesos::internal::monitoring::ResourceCollector;
 
-class ResourceMonitor : public Process<ResourceMonitor>
+class ResourceMonitor : public process::Process<ResourceMonitor>
 {
 public:
   ResourceMonitor(ResourceCollector* collector);
@@ -44,8 +46,8 @@ public:
   // them. For applicable resource, each call reports usage over the time period
   // since the previous invocation. For the first invocation, returns the total
   // usage since the initialization of the resource being monitored.
-  virtual Future<UsageMessage> collectUsage(const FrameworkID& frameworkId,
-                                            const ExecutorID& executorId);
+  virtual process::Future<UsageMessage> collectUsage(const FrameworkID& frameworkId,
+                                                     const ExecutorID& executorId);
 
 protected:
   ResourceCollector* collector;
