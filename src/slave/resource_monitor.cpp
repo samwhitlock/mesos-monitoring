@@ -83,11 +83,16 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
   // so may not be worthwhile. This could change.
   // return UsageReport(resources, now, duration);
 
-  // TODO(adegtiar): if it got this far, both calls succeeded
-  // 1. assemble a UsageReport
-  // 2. call p.set(usageReport)
-  // I'll take care of the other stuff
-  return p.future();
+  // Assemble the UsageMessage and return the corresponding Future.
+  UsageMessage usage;
+  usage.mutable_framework_id()->MergeFrom(frameworkId);
+  usage.mutable_executor_id()->MergeFrom(executorId);
+  usage.mutable_resources()->MergeFrom(resources);
+  usage.set_timestamp(now);
+  usage.set_duration(duration);
+
+  // Cast into a Future<UsageMessage> and return.
+  return usage;
 }
 
 } // namespace slave {
