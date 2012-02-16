@@ -162,7 +162,7 @@ libmesos_no_third_party_la_SOURCES = sched/sched.cpp local/local.cpp	\
 	common/resources.cpp common/attributes.cpp common/values.cpp	\
 	zookeeper/zookeeper.cpp zookeeper/authentication.cpp		\
 	zookeeper/group.cpp messages/log.proto messages/messages.proto \
-	monitoring/process_resource_collector.cpp monitoring/resource_monitor.cpp
+	monitoring/process_resource_collector.cpp slave/resource_monitor.cpp
 
 pkginclude_HEADERS = $(top_srcdir)/include/mesos/executor.hpp	\
 		     $(top_srcdir)/include/mesos/scheduler.hpp	\
@@ -199,7 +199,7 @@ libmesos_no_third_party_la_SOURCES += common/attributes.hpp		\
 	local/local.hpp log/coordinator.hpp log/replica.hpp		\
 	log/log.hpp log/network.hpp master/allocator.hpp		\
 	monitoring/process_resource_collector.hpp monitoring/resource_collector.hpp \
-	monitoring/resource_monitor.hpp monitoring/linux/proc_utils.hpp \
+	slave/resource_monitor.hpp monitoring/linux/proc_utils.hpp \
 	monitoring/linux/proc_resource_collector.hpp \
 	monitoring/linux/lxc_resource_collector.hpp \
 	master/allocator_factory.hpp master/constants.hpp		\
