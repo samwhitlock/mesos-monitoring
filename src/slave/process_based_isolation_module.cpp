@@ -250,7 +250,6 @@ Future<UsageMessage> ProcessBasedIsolationModule::sampleUsage(
   ResourceMonitor* resourceMonitor = info->resourceMonitor;
 
   if (resourceMonitor != NULL) { // NULL on unsupported platforms.
-    //TODO(sam): you have to use dispatch for this to be asynchronous!
     return dispatch(resourceMonitor,
         &ResourceMonitor::collectUsage,
         frameworkId, executorId);
