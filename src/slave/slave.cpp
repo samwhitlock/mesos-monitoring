@@ -1437,29 +1437,29 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
 
 void Slave::queueUsageUpdates()
 {
-  std::set<Future<UsageMessage> >* futures = new std::set<Future<UsageMessage> >();
+  std::list<Future<UsageMessage> >* futures = new std::list<Future<UsageMessage> >();
 
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
-      futures->insert(isolationModule->sampleUsage(frameworkId, executorId));
+      futures->push_back(isolationModule->sampleUsage(frameworkId, executorId));
     }
   }
   
   if (futures->empty()) {
     delete futures;
   } else {
-    Future<std::set<UsageMessage> > future = collect(*futures);
+    Future<std::list<UsageMessage> > future = collect(*futures);
     future.onAny(defer(self(), &Slave::retrieveUsage, future));
   }
 
   delay(2.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
 }
 
-void Slave::retrieveUsage(const Future<std::set<UsageMessage> >& future)
+void Slave::retrieveUsage(const Future<std::list<UsageMessage> >& future)
 {
   if (future.isReady()) {
-    std::set<UsageMessage> ums = future.get();
+    std::list<UsageMessage> ums = future.get();
     foreach (UsageMessage &um, ums) {
       Framework *f = getFramework(um.framework_id());
       if (f != NULL) {

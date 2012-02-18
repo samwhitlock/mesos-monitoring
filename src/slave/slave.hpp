@@ -19,6 +19,8 @@
 #ifndef __SLAVE_HPP__
 #define __SLAVE_HPP__
 
+#include <list>
+
 #include <process/process.hpp>
 #include <process/protobuf.hpp>
 #include <process/future.hpp>
@@ -164,7 +166,7 @@ private:
 
   // Method to collect UsageMessage instances from requests made
   // to isolation module (and subsequently to ResourceMonitor).
-  void retrieveUsage(const Future<std::set<UsageMessage> >& future);
+  void retrieveUsage(const Future<std::list<UsageMessage> >& future);
 
   const Configuration conf;
 
