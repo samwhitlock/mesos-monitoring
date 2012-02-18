@@ -3,7 +3,7 @@
 
 #include <assert.h>
 
-#include <set>
+#include <list>
 
 #include <process/defer.hpp>
 #include <process/future.hpp>
