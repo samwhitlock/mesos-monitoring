@@ -39,6 +39,7 @@ using namespace mesos::internal::slave;
 using process::Clock;
 using process::Future;
 using std::string;
+using testing::Expectation;
 using testing::Return;
 
 class MockCollector : public ResourceCollector
@@ -55,16 +56,21 @@ TEST(ResourceMonitorTest, MonitorsCorrectly)
   MockCollector* mock_collector = new MockCollector();
 
   // TODO(sam) put call requirements here!
+
+  // Make sure collectUsage is called before retrieve mem/cpu usage.
+  Expectation collect_usage = EXPECT_CALL(*mock_collector, collectUsage())
+    .Times(1);
+
   // Set the memory usage the collector will return.
   double memoryUsage = 123456789.0;
   EXPECT_CALL(*mock_collector, getMemoryUsage())
-    .Times(1)
+    .After(collect_usage)
     .WillOnce(Return(Try<double>::some(memoryUsage)));
 
   // Set the cpu usage the collector will return.
   double duration = 13579.0, difference = 2468.0;
   EXPECT_CALL(*mock_collector, getCpuUsage())
-    .Times(1)
+    .After(collect_usage)
     .WillOnce(Return(Try<Rate>::some(Rate(duration, difference))));
 
   ResourceMonitor mocked_monitor(mock_collector);
@@ -75,7 +81,7 @@ TEST(ResourceMonitorTest, MonitorsCorrectly)
   ExecutorID executor_id;
   executor_id.set_value("executor_id1");
 
-  // Collect the Usage.
+  // Collect the usage.
   Future<UsageMessage> usage_msg_future = mocked_monitor.collectUsage(
       framework_id, executor_id);
 
@@ -88,7 +94,7 @@ TEST(ResourceMonitorTest, MonitorsCorrectly)
 
   // Make sure the returned UsageMessage matches the expected values.
   EXPECT_EQ(duration, usage_msg.duration());
-  EXPECT_FALSE(usage_msg.timestamp() > Clock::now()); //To fix roundoff errors
+  EXPECT_FALSE(usage_msg.timestamp() > Clock::now()); // To fix roundoff errors.
   
   // TODO(adegtiar or sam): make this the correct call.
   //EXPECT_EQ(framework_id, usage_msg.framework_id());
