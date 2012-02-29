@@ -132,9 +132,9 @@ void LxcIsolationModule::launchExecutor(
   info->frameworkId = frameworkId;
   info->executorId = executorId;
   info->container = container;
-  LxcResourceCollector* resourceCollector = new LxcResourceCollector(container);
-  info->resourceMonitor = new ResourceMonitor(resourceCollector);
+  // Initialize these variables to handle corner cases.
   info->pid = -1;
+  info->resourceMonitor = NULL;
 
   infos[frameworkId][executorId] = info;
 
@@ -152,6 +152,11 @@ void LxcIsolationModule::launchExecutor(
 
     // Record the pid.
     info->pid = pid;
+
+    // Start up the resource monitor.
+    LxcResourceCollector* collector = new LxcResourceCollector(container);
+    info->resourceMonitor = new ResourceMonitor(collector);
+    spawn(info->resourceMonitor);
 
     // Tell the slave this executor has started.
     dispatch(slave, &Slave::executorStarted,
@@ -243,6 +248,11 @@ void LxcIsolationModule::killExecutor(
   }
 
   ContainerInfo* info = infos[frameworkId][executorId];
+
+  // Terminate the monitoring process.
+  if (info->resourceMonitor != NULL) {
+    terminate(info->resourceMonitor);
+  }
 
   CHECK(info->container != "");
 

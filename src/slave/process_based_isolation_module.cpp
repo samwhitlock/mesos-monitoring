@@ -103,7 +103,9 @@ void ProcessBasedIsolationModule::launchExecutor(
   info->frameworkId = frameworkId;
   info->executorId = executorId;
   info->directory = directory;
-  info->pid = -1; // Initialize this variable to handle corner cases.
+  // Initialize these variables to handle corner cases.
+  info->pid = -1;
+  info->resourceMonitor = NULL;
 
   infos[frameworkId][executorId] = info;
 
@@ -120,9 +122,10 @@ void ProcessBasedIsolationModule::launchExecutor(
     infos[frameworkId][executorId]->pid = pid;
 
     // Start up the resource monitor.
-    ProcessResourceCollector* prc = ProcessResourceCollector::create(pid);
-    if (prc != NULL) {
-      info->resourceMonitor = new ResourceMonitor(prc);
+    ProcessResourceCollector* collector = ProcessResourceCollector::create(pid);
+    if (collector != NULL) {
+      info->resourceMonitor = new ResourceMonitor(collector);
+      spawn(info->resourceMonitor);
     }
 
     // Tell the slave this executor has started.
@@ -165,6 +168,11 @@ void ProcessBasedIsolationModule::killExecutor(
     utils::process::killtree(pid, SIGKILL, true, true);
 
     ProcessInfo* info = infos[frameworkId][executorId];
+
+    // Kill the monitoring process.
+    if (info->resourceMonitor != NULL) {
+      terminate(info->resourceMonitor);
+    }
 
     if (infos[frameworkId].size() == 1) {
       infos.erase(frameworkId);
