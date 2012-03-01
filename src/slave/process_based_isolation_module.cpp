@@ -162,17 +162,17 @@ void ProcessBasedIsolationModule::killExecutor(
   pid_t pid = infos[frameworkId][executorId]->pid;
 
   if (pid != -1) {
+    ProcessInfo* info = infos[frameworkId][executorId];
+
+    // Terminate the monitoring process.
+    if (info->resourceMonitor != NULL) {
+      terminate(info->resourceMonitor);
+    }
+
     // TODO(vinod): Call killtree on the pid of the actual executor process
     // that is running the tasks (stored in the local storage by the
     // executor module).
     utils::process::killtree(pid, SIGKILL, true, true);
-
-    ProcessInfo* info = infos[frameworkId][executorId];
-
-    // Kill the monitoring process.
-    if (info->resourceMonitor != NULL) {
-      terminate(info->resourceMonitor);
-    }
 
     if (infos[frameworkId].size() == 1) {
       infos.erase(frameworkId);
