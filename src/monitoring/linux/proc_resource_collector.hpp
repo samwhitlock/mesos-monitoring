@@ -19,13 +19,14 @@
 #ifndef __PROC_RESOURCE_COLLECTOR_HPP__
 #define __PROC_RESOURCE_COLLECTOR_HPP__
 
-#include <iostream>
 #include <list>
+
+#include <sys/types.h>
 
 #include "common/try.hpp"
 
 #include "monitoring/process_resource_collector.hpp"
-#include "monitoring/linux/proc_utils.hpp"
+#include "monitoring/process_stats.hpp"
 
 namespace mesos {
 namespace internal {
@@ -41,39 +42,10 @@ public:
 
   virtual ~ProcResourceCollector();
 
-  virtual void collectUsage();
+protected:
+  virtual Try<std::list<ProcessStats> > getProcessTreeStats();
 
-  virtual Try<double> getMemoryUsage();
-
-  virtual Try<Rate> getCpuUsage();
-
-private:
-  const pid_t rootPid;
-
-  Try<double> currentMemUsage;
-
-  Try<seconds> prevCpuUsage;
-
-  Try<seconds> currentCpuUsage;
-
-  Try<seconds> prevTimestamp;
-
-  Try<seconds> currentTimestamp;
-
-  bool isInitialized;
-
-  // Retrieve the info for all processes rooted at the process with the
-  // given PID.
- Try<std::list<ProcessStats> > getProcessTreeStats();
-
- // Updates or initializes the previous resource usage state.
- void updatePreviousUsage();
-
-  // Aggregates the info all of the given ProcessStats and stores the result in
-  // memTotal and cpuTotal.
-  void aggregateResourceUsage(const std::list<ProcessStats>& processes,
-      double& memTotal,
-      double& cpuTotal);
+  virtual Try<seconds> getStartTime();
 };
 
 } // namespace monitoring {

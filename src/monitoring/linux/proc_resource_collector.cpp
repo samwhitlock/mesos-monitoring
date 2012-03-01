@@ -16,104 +16,28 @@
  * limitations under the License.
  */
 
-#include <assert.h>
-
-#include <iostream>
 #include <list>
 
-#include <process/process.hpp>
+#include <sys/types.h>
 
 #include "common/foreach.hpp"
-#include "common/resources.hpp"
-#include "common/seconds.hpp"
 #include "common/try.hpp"
 
 #include "monitoring/linux/proc_resource_collector.hpp"
 #include "monitoring/linux/proc_utils.hpp"
 
-using process::Clock;
-using std::ios_base;
+#include "monitoring/process_stats.hpp"
+
 using std::list;
 
 namespace mesos {
 namespace internal {
 namespace monitoring {
 
-inline Try<seconds> initialTryValue()
-{
-  return Try<seconds>::error("initial value");
-}
-
 ProcResourceCollector::ProcResourceCollector(pid_t _rootPid) :
-  rootPid(_rootPid),
-  isInitialized(false),
-  currentMemUsage(Try<double>::error("initial value")),
-  currentCpuUsage(initialTryValue()),
-  currentTimestamp(initialTryValue()),
-  prevCpuUsage(initialTryValue()),
-  prevTimestamp(initialTryValue()) {}
+  ProcessResourceCollector(_rootPid) {}
 
 ProcResourceCollector::~ProcResourceCollector() {}
-
-Try<double> ProcResourceCollector::getMemoryUsage()
-{
-  return currentMemUsage;
-}
-
-Try<Rate> ProcResourceCollector::getCpuUsage()
-{
-  if (currentCpuUsage.isSome() && currentTimestamp.isSome() &&
-      prevCpuUsage.isSome() && prevTimestamp.isSome()) {
-    return Rate(currentTimestamp.get().value - prevTimestamp.get().value,
-        currentCpuUsage.get().value - prevCpuUsage.get().value);
-  } else if (prevTimestamp.isError()) {
-    // This only happens when process start time lookup fails. Might as
-    // well report this first.
-    return Try<Rate>::error(prevTimestamp.error());
-  } else {
-    return Try<Rate>::error(currentCpuUsage.error());
-  }
-}
-
-void ProcResourceCollector::collectUsage()
-{
-  updatePreviousUsage();
-
-  // Read the process stats.
-  Try<list<ProcessStats> > tryProcessTree = getProcessTreeStats();
-  if (tryProcessTree.isError()) {
-    currentMemUsage = Try<double>::error(tryProcessTree.error());
-    currentCpuUsage = Try<seconds>::error(tryProcessTree.error());
-    currentTimestamp = Try<seconds>::error(tryProcessTree.error());
-    return;
-  }
-  list<ProcessStats> processTree = tryProcessTree.get();
-
-  // Success, so roll over previous usage.
-  prevTimestamp = currentTimestamp;
-  prevCpuUsage = currentCpuUsage;
-
-  // Sum up the current resource usage stats.
-  double cpuUsageTicks, memUsage;
-  aggregateResourceUsage(processTree, memUsage, cpuUsageTicks);
-  // TODO(adegtiar): do this via cast?
-  currentMemUsage = memUsage;
-  currentCpuUsage = seconds(cpuUsageTicks);
-  currentTimestamp = seconds(Clock::now());
-}
-
-void ProcResourceCollector::updatePreviousUsage()
-{
-  if (!isInitialized) {
-    prevCpuUsage = seconds(0);
-    prevTimestamp = getStartTime(rootPid);
-    isInitialized = true;
-  } else if (currentMemUsage.isSome() && currentCpuUsage.isSome()) {
-    // Roll over prev usage from current usage.
-    prevCpuUsage = currentCpuUsage;
-    prevTimestamp = currentTimestamp;
-  } // else keep previous usage.
-}
 
 // TODO(adegtiar): consider doing a full tree walk.
 Try<list<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
@@ -147,17 +71,9 @@ Try<list<ProcessStats> > ProcResourceCollector::getProcessTreeStats()
   return processTree;
 }
 
-void ProcResourceCollector::aggregateResourceUsage(
-    const list<ProcessStats>& processes,
-    double& memTotal,
-    double& cpuTotal)
+Try<seconds> ProcResourceCollector::getStartTime()
 {
-  memTotal = 0;
-  cpuTotal = 0;
-  foreach (const ProcessStats& pinfo, processes) {
-    memTotal += pinfo.memUsage;
-    cpuTotal += pinfo.cpuTime.value;
-  }
+  return monitoring::getStartTime(rootPid);
 }
 
 } // namespace monitoring {

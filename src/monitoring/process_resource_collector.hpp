@@ -19,8 +19,14 @@
 #ifndef __PROCESS_RESOURCE_COLLECTOR_HPP__
 #define __PROCESS_RESOURCE_COLLECTOR_HPP__
 
+#include <list>
+
 #include <sys/types.h>
 
+#include "common/seconds.hpp"
+#include "common/try.hpp"
+
+#include "monitoring/process_stats.hpp"
 #include "monitoring/resource_collector.hpp"
 
 namespace mesos {
@@ -37,7 +43,47 @@ public:
   // system. If no monitor can be constructed, returns NULL.
   static ProcessResourceCollector* create(pid_t rootPid);
 
+  ProcessResourceCollector(pid_t rootPid);
+
   virtual ~ProcessResourceCollector() {}
+
+  virtual void collectUsage();
+
+  virtual Try<double> getMemoryUsage();
+
+  virtual Try<Rate> getCpuUsage();
+
+protected:
+  const pid_t rootPid;
+
+  // Retrieve the info for all processes rooted at the process with the
+  // given PID.
+ virtual Try<std::list<ProcessStats> > getProcessTreeStats() = 0;
+
+ // Retrieve the start time of the monitored process.
+ virtual Try<seconds> getStartTime() = 0;
+
+private:
+  Try<double> currentMemUsage;
+
+  Try<seconds> prevCpuUsage;
+
+  Try<seconds> currentCpuUsage;
+
+  Try<seconds> prevTimestamp;
+
+  Try<seconds> currentTimestamp;
+
+  bool isInitialized;
+
+ // Updates or initializes the previous resource usage state.
+ void updatePreviousUsage();
+
+  // Aggregates the info all of the given ProcessStats and stores the result in
+  // memTotal and cpuTotal.
+  void aggregateResourceUsage(const std::list<ProcessStats>& processes,
+      double& memTotal,
+      double& cpuTotal);
 };
 
 } // namespace monitoring {
