@@ -97,15 +97,15 @@ void ProcResourceCollector::collectUsage()
   double cpuUsageTicks, memUsage;
   aggregateResourceUsage(processTree, memUsage, cpuUsageTicks);
   // TODO(adegtiar): do this via cast?
-  currentMemUsage = Try<double>::some(memUsage);
-  currentCpuUsage = Try<seconds>::some(seconds(cpuUsageTicks));
-  currentTimestamp = Try<seconds>::some(seconds(Clock::now()));
+  currentMemUsage = memUsage;
+  currentCpuUsage = seconds(cpuUsageTicks);
+  currentTimestamp = seconds(Clock::now());
 }
 
 void ProcResourceCollector::updatePreviousUsage()
 {
   if (!isInitialized) {
-    prevCpuUsage = Try<seconds>::some(seconds(0));
+    prevCpuUsage = seconds(0);
     prevTimestamp = getStartTime(rootPid);
     isInitialized = true;
   } else if (currentMemUsage.isSome() && currentCpuUsage.isSome()) {
