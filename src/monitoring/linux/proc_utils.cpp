@@ -28,7 +28,9 @@
 #include "common/seconds.hpp"
 #include "common/try.hpp"
 #include "common/utils.hpp"
+
 #include "monitoring/linux/proc_utils.hpp"
+#include "monitoring/process_stats.hpp"
 
 using std::ifstream;
 using std::string;
