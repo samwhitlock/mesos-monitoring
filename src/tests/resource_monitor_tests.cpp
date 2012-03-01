@@ -96,7 +96,7 @@ TEST(ResourceMonitorTest, MonitorsCorrectly)
   EXPECT_EQ(duration, usage_msg.duration());
   EXPECT_FALSE(usage_msg.timestamp() > Clock::now()); // To fix roundoff errors.
   
-  // TODO(adegtiar or sam): make this the correct call.
+  // TODO(adegtiar or sam): fix this check.
   //EXPECT_EQ(framework_id, usage_msg.framework_id());
   //EXPECT_EQ(executor_id, usage_msg.executor_id());
 
