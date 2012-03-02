@@ -76,8 +76,8 @@ private:
 
   bool isInitialized;
 
- // Updates or initializes the previous resource usage state.
- void updatePreviousUsage();
+  // Updates or initializes the previous resource usage state.
+  void updatePreviousUsage();
 
   // Aggregates the info all of the given ProcessStats and stores the result in
   // memTotal and cpuTotal.
