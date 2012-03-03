@@ -290,6 +290,8 @@ void Slave::initialize()
   route("vars", bind(&http::vars, cref(*this), params::_1));
   route("stats.json", bind(&http::json::stats, cref(*this), params::_1));
   route("state.json", bind(&http::json::state, cref(*this), params::_1));
+
+  delay(1.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
 }
 
 
@@ -1453,7 +1455,7 @@ void Slave::queueUsageUpdates()
     future.onAny(defer(self(), &Slave::retrieveUsage, future));
   }
 
-  delay(2.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
+  delay(1.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
 }
 
 void Slave::retrieveUsage(const Future<std::list<UsageMessage> >& future)
