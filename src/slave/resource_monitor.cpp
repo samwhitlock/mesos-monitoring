@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 
-#include "resource_monitor.hpp"
 #include <mesos/mesos.hpp>
-#include "common/resources.hpp"//TODO(sam) do I even need this?
+
+#include "common/resources.hpp"
+
+#include "slave/resource_monitor.hpp"
 
 using process::Clock;
 using process::Future;
@@ -29,18 +31,21 @@ namespace mesos {
 namespace internal {
 namespace slave {
 
+
 ResourceMonitor::ResourceMonitor(ResourceCollector* _collector)
   : collector(_collector) {}
+
 
 ResourceMonitor::~ResourceMonitor()
 {
   delete collector;
 }
 
+
 // The default implementation collects only the cpu and memory
 // for use in creating a UsageMessage
-Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkId,
-                                                   const ExecutorID& executorId)
+Future<UsageMessage> ResourceMonitor::collectUsage(
+    const FrameworkID& frameworkId, const ExecutorID& executorId)
 {
   Promise<UsageMessage> p;
   Resources resources;
@@ -48,13 +53,16 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
   double duration = 0;
 
   collector->collectUsage();
+
   // TODO(adegtiar or sam): consider making this more general to
   // avoid code duplication and make it more flexible, e.g.
   // foreach usageType in ["mem_usage", "cpu_usage", ...]
   //   collector->getUsage(usageType); (+ Try stuff, etc)
+
+  // Merge the memory usage into the resources.
   Try<double> memUsage = collector->getMemoryUsage();
   if (memUsage.isSome()) {
-    ::mesos::Resource memory;
+    mesos::Resource memory;
     memory.set_type(Value::SCALAR);
     memory.set_name("mem_usage");
     memory.mutable_scalar()->set_value(memUsage.get());
@@ -64,10 +72,11 @@ Future<UsageMessage> ResourceMonitor::collectUsage(const FrameworkID& frameworkI
     return p.future();
   }
 
+  // Merge the cpu usage into the resources.
   Try<Rate> cpuUsage = collector->getCpuUsage();
   if (cpuUsage.isSome()) {
     Rate rate = cpuUsage.get();
-    ::mesos::Resource cpu;
+    mesos::Resource cpu;
     cpu.set_type(Value::SCALAR);
     cpu.set_name("cpu_usage");
     cpu.mutable_scalar()->set_value(rate.difference);

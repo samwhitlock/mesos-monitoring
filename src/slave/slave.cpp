@@ -1477,7 +1477,7 @@ void Slave::retrieveUsage(const Future<std::list<UsageMessage> >& future)
     }
   } else {
     assert(future.isFailed());//TODO do we need this assertion?
-    LOG(ERROR) << "Error retrieving at least 1 usage message: " << future.failure();
+    LOG(WARNING) << "Error retrieving at least 1 usage message: " << future.failure();
   }
 }
 
