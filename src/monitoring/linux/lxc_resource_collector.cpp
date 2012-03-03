@@ -54,7 +54,7 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
     // TODO(sam): Make this handle the Try of the getStartTime.
     previousTimestamp = getContainerStartTime().get().value;
   }
-  
+
   double seconds = Clock::now();
 
   Try<double> cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
@@ -66,7 +66,7 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
   double ticks = nanoseconds(cpuTicks.get()).secs();
   double elapsedTicks = ticks - previousCpuTicks;
   previousCpuTicks = ticks;
-  
+
   double elapsedTime = seconds - previousTimestamp;
   previousTimestamp = seconds;
 
