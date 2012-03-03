@@ -63,7 +63,7 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
     return Try<Rate>::error("unable to read cpuacct.usage from lxc");
   }
 
-  double ticks = cpuTicks.get();
+  double ticks = nanoseconds(cpuTicks.get()).secs();
   double elapsedTicks = ticks - previousCpuTicks;
   previousCpuTicks = ticks;
   
