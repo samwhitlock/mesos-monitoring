@@ -25,7 +25,7 @@ namespace mesos {
 namespace internal {
 namespace monitoring {
 
-// Contains statistics about a running process.
+// Contains a snapshot of statistics about a running process.
 struct ProcessStats
 {
   ProcessStats(pid_t _pid, pid_t _ppid, pid_t _pgrp, pid_t _sid,
