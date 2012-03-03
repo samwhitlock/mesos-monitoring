@@ -45,7 +45,6 @@ using testing::Return;
 class MockCollector : public ResourceCollector
 {
 public:
-  // TODO(sam): Fix/confirm change.
   MOCK_METHOD0(getMemoryUsage, Try<double>());
   MOCK_METHOD0(getCpuUsage, Try<Rate>());
   MOCK_METHOD0(collectUsage, void());
@@ -54,8 +53,6 @@ public:
 TEST(ResourceMonitorTest, MonitorsCorrectly)
 {
   MockCollector* mock_collector = new MockCollector();
-
-  // TODO(sam) put call requirements here!
 
   // Make sure collectUsage is called before retrieve mem/cpu usage.
   Expectation collect_usage = EXPECT_CALL(*mock_collector, collectUsage())
