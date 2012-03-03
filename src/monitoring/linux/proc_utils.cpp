@@ -115,7 +115,8 @@ Try<ProcessStats> getProcessStats(const pid_t& pid)
   }
 
   // TODO(adegtiar): consider doing something more sophisticated for memUsage.
-  return ProcessStats(_pid, ppid, pgrp, sid, seconds(utime + stime),
+  return ProcessStats(_pid, ppid, pgrp, sid,
+      seconds(ticksToSeconds(utime + stime)),
       seconds(bootTime.get().value + jiffiesToSeconds(starttime).value),
       rss * sysconf(_SC_PAGE_SIZE));
 }
