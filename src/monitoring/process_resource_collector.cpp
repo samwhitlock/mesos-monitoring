@@ -82,6 +82,9 @@ Try<Rate> ProcessResourceCollector::getCpuUsage()
   }
 }
 
+// TODO(adegtiar): store all previous process stats and calculate the
+// per-process difference to avoid negative spikes in cpu usage when a
+// process dies.
 void ProcessResourceCollector::collectUsage()
 {
   updatePreviousUsage();
