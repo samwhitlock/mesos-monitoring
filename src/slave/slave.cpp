@@ -1468,6 +1468,10 @@ void Slave::retrieveUsage(const Future<std::list<UsageMessage> >& future)
         Executor *e = f->getExecutor(um.executor_id());
         if (e != NULL) {
           e->currentUsage = um;
+          Resources usage = um.resources();
+          LOG(INFO) << "mem_usage: " << usage.get("mem_usage", Value::Scalar()).value()
+            << " | cpu_usage: " << usage.get("cpu_usage", Value::Scalar()).value()
+            << " | duration: " << um.duration();
         }
       }
     }

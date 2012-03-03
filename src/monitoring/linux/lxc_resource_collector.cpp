@@ -55,7 +55,7 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
     previousTimestamp = getContainerStartTime().get().value;
   }
   
-  double asMillisecs = Clock::now();
+  double seconds = Clock::now();
 
   Try<double> cpuTicks = getControlGroupDoubleValue("cpuacct.usage");
 
@@ -67,8 +67,8 @@ Try<Rate> LxcResourceCollector::getCpuUsage()
   double elapsedTicks = ticks - previousCpuTicks;
   previousCpuTicks = ticks;
   
-  double elapsedTime = asMillisecs - previousTimestamp;
-  previousTimestamp = asMillisecs;
+  double elapsedTime = seconds - previousTimestamp;
+  previousTimestamp = seconds;
 
   return Rate(elapsedTime, elapsedTicks);
 }
