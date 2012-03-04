@@ -281,8 +281,6 @@ void Slave::initialize()
   install<ShutdownMessage>(
       &Slave::shutdown);
   
-  //TODO(monitoring): install UsageMessage here?
-  
   // Install the ping message handler.
   install("PING", &Slave::ping);
 
@@ -291,7 +289,9 @@ void Slave::initialize()
   route("stats.json", bind(&http::json::stats, cref(*this), params::_1));
   route("state.json", bind(&http::json::state, cref(*this), params::_1));
 
-  delay(1.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
+  pollDelay = 1.0 / conf.get<double>("frequency", 1.0);
+
+  delay(pollDelay, self(), &Slave::queueUsageUpdates);
 }
 
 
@@ -1455,7 +1455,7 @@ void Slave::queueUsageUpdates()
     future.onAny(defer(self(), &Slave::retrieveUsage, future));
   }
 
-  delay(1.0, self(), &Slave::queueUsageUpdates);//TODO(sam): hardcoding is bad!
+  delay(pollDelay, self(), &Slave::queueUsageUpdates);
 }
 
 void Slave::retrieveUsage(const Future<std::list<UsageMessage> >& future)

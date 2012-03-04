@@ -194,6 +194,7 @@ private:
   } stats;
 
   double startTime;
+  double pollDelay; // The amount to wait between calling queueUsageUpdates. 1/conf.frequency
 
   bool connected; // Flag to indicate if slave is registered.
 //   typedef std::pair<FrameworkID, TaskID> StatusUpdateStreamID;

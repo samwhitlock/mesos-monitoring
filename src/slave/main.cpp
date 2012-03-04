@@ -64,6 +64,7 @@ int main(int argc, char** argv)
   configurator.addOption<string>("ip", "IP address to listen on");
   configurator.addOption<string>("master", 'm', "Master URL");
   configurator.addOption<string>("isolation", 'i', "Isolation module name", "process");
+  configurator.addOption<double>("frequency", 'f', "Frequency per second to collect usage from executors", 1.0);
 #ifdef MESOS_WEBUI
   configurator.addOption<int>("webui_port", 'w', "Web UI port", 8081);
 #endif
