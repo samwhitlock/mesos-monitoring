@@ -81,12 +81,12 @@ bool LxcResourceCollector::getControlGroupValue(
                      containerName.c_str(), property.c_str());
 
   if (status.isError()) {
-    LOG(ERROR) << "Failed to get " << property
+    LOG(INFO) << "Failed to get " << property
                << " for container " << containerName
                << ": " << status.error();
     return false;
   } else if (status.get() != 0) {
-    LOG(ERROR) << "Failed to get " << property
+    LOG(INFO) << "Failed to get " << property
                << " for container " << containerName
                << ": lxc-cgroup returned " << status.get();
     return false;
