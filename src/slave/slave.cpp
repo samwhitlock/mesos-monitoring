@@ -1439,19 +1439,17 @@ string Slave::createUniqueWorkDirectory(const FrameworkID& frameworkId,
 
 void Slave::queueUsageUpdates()
 {
-  std::list<Future<UsageMessage> >* futures = new std::list<Future<UsageMessage> >();
+  std::list<Future<UsageMessage> > futures;
 
   foreachkey (const FrameworkID& frameworkId, frameworks) {
     Framework* framework = frameworks[frameworkId];
     foreachkey (const ExecutorID& executorId, framework->executors) {
-      futures->push_back(isolationModule->sampleUsage(frameworkId, executorId));
+      futures.push_back(isolationModule->sampleUsage(frameworkId, executorId));
     }
   }
   
-  if (futures->empty()) {
-    delete futures;
-  } else {
-    Future<std::list<UsageMessage> > future = collect(*futures);
+  if (!futures.empty()) {
+    Future<std::list<UsageMessage> > future = collect(futures);
     future.onAny(defer(self(), &Slave::retrieveUsage, future));
   }
 
