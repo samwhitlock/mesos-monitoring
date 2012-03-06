@@ -1441,8 +1441,7 @@ void Slave::queueUsageUpdates()
 {
   std::list<Future<UsageMessage> > futures;
 
-  foreachkey (const FrameworkID& frameworkId, frameworks) {
-    Framework* framework = frameworks[frameworkId];
+  foreachpair (const FrameworkID& frameworkId, const Framework* framework, frameworks) {
     foreachkey (const ExecutorID& executorId, framework->executors) {
       futures.push_back(isolationModule->sampleUsage(frameworkId, executorId));
     }
