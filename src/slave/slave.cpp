@@ -1460,7 +1460,7 @@ void Slave::retrieveUsage(const Future<std::list<UsageMessage> >& future)
 {
   if (future.isReady()) {
     std::list<UsageMessage> ums = future.get();
-    foreach (UsageMessage &um, ums) {
+    foreach (const UsageMessage &um, ums) {
       Framework *f = getFramework(um.framework_id());
       if (f != NULL) {
         Executor *e = f->getExecutor(um.executor_id());
