@@ -356,13 +356,14 @@ dist_pkglibexec_SCRIPTS += scripts/killtree.sh
 # to EXTRA_DIST unconditionally.
 
 # Mesos JAR.
-MESOS_JAR = mesos.jar
+MESOS_JAR = mesos-$(PACKAGE_VERSION).jar
 MESOS_JAR_SRCROOT = $(srcdir)/java/src
 MESOS_JAR_SRCDIR = $(srcdir)/java/src/org/apache/mesos
 MESOS_JAR_SRC = $(MESOS_JAR_SRCDIR)/ExecutorDriver.java		\
 		$(MESOS_JAR_SRCDIR)/Executor.java		\
 		$(MESOS_JAR_SRCDIR)/Log.java			\
 		$(MESOS_JAR_SRCDIR)/MesosExecutorDriver.java	\
+		$(MESOS_JAR_SRCDIR)/MesosNativeLibrary.java	\
 		$(MESOS_JAR_SRCDIR)/MesosSchedulerDriver.java	\
 		$(MESOS_JAR_SRCDIR)/SchedulerDriver.java	\
 		$(MESOS_JAR_SRCDIR)/Scheduler.java
@@ -376,14 +377,15 @@ JAVA_EXAMPLES_SRC = $(srcdir)/examples/java/TestExceptionFramework.java	\
 	$(srcdir)/examples/java/TestFramework.java			\
 	$(srcdir)/examples/java/TestMultipleExecutorsFramework.java
 EXTRA_DIST += $(JAVA_EXAMPLES_SRC)
+CLEANFILES += $(EXAMPLES_JAR)
 
 if HAS_JAVA
 # Protocol buffers JAR.
-PROTOBUF_JAR = ../protobuf.jar
+PROTOBUF_JAR = ../protobuf-$(PROTOBUF_VERSION).jar
 
 # TODO(charles): Move into third_party/Makefile.am.
 $(PROTOBUF_JAR): # TODO(charles): Specify dependencies for the jar.
-	@echo "Building protobuf.jar ..."
+	@echo "Building protobuf-$(PROTOBUF_VERSION).jar ..."
 	@$(MKDIR_P) ../$(PROTOBUF)/java/src/main/java
 	@$(PROTOC) --java_out=../$(PROTOBUF)/java/src/main/java \
           -I../$(PROTOBUF)/src \
@@ -398,7 +400,7 @@ CLEANFILES += $(PROTOBUF_JAR)
 
 
 $(MESOS_JAR): $(MESOS_JAR_SRC) $(JAVA_PROTOS) $(PROTOBUF_JAR)
-	@echo "Building mesos.jar ..."
+	@echo "Building mesos-$(PACKAGE_VERSION).jar ..."
 	@rm -f java/classes/org/apache/mesos/*
 	@$(MKDIR_P) java/classes/org/apache/mesos
 	@$(JAVA_HOME)/bin/javac \
@@ -634,7 +636,8 @@ mesos_tests_SOURCES = tests/main.cpp tests/utils.cpp			\
 	              tests/exception_tests.cpp				\
 	              tests/proc_utils_tests.cpp			\
 	              tests/resource_monitor_tests.cpp	\
-	              tests/process_resource_collector_tests.cpp
+	              tests/process_resource_collector_tests.cpp \
+								tests/attributes_test.cpp
 
 mesos_tests_CPPFLAGS = $(MESOS_CPPFLAGS)
 mesos_tests_CPPFLAGS += -DSOURCE_DIR=\"$(abs_top_srcdir)\"
@@ -676,6 +679,9 @@ if HAS_PYTHON
   check_SCRIPTS += $(EXAMPLESCRIPTSPYTHON)
   mesos_tests_DEPENDENCIES += $(EXAMPLESCRIPTSPYTHON)
 endif
+
+EXTRA_DIST += examples/python/test_framework.py \
+	      examples/python/test_executor.py
 
 
 EXTERNALSCRIPTS =						\

@@ -24,6 +24,8 @@
 
 BUILT_SOURCES =
 
+SUBDIRS = libprocess
+
 # We need to add '--srcdir=.' needed because 'make distcheck' adds
 #  '--srcdir=...' when configuring.
 CONFIGURE_ARGS = @CONFIGURE_ARGS@ --enable-shared=no --with-pic --srcdir=.
@@ -39,7 +41,6 @@ GTEST = $(GMOCK)/gtest
 LEVELDB = leveldb
 PROTOBUF = protobuf-$(PROTOBUF_VERSION)
 ZOOKEEPER = zookeeper-$(ZOOKEEPER_VERSION)
-LIBPROCESS = libprocess
 
 
 EXTRA_DIST = $(BOOST).tar.gz $(BOTO).zip				\
@@ -101,13 +102,15 @@ THIRD_PARTY_LIBS = $(BOOST)-stamp $(GLOG)/libglog.la		\
 	$(PROTOBUF)/src/protoc
 
 if WITH_INCLUDED_ZOOKEEPER
-THIRD_PARTY_LIBS += $(ZOOKEEPER)/src/c/libzookeeper_mt.la
+  THIRD_PARTY_LIBS += $(ZOOKEEPER)/src/c/libzookeeper_mt.la
+else
+  # Now matter what we need to extract ZooKeeper so that we can run
+  # 'make check' (some of our tests need the ZooKeeper JAR).
+  THIRD_PARTY_LIBS += $(ZOOKEEPER)-stamp
 endif
 
 all-local: $(THIRD_PARTY_LIBS)
-	@cd $(LIBPROCESS) && $(MAKE) $(AM_MAKEFLAGS) all
 
 clean-local:
-	@cd $(LIBPROCESS) && $(MAKE) $(AM_MAKEFLAGS) clean
 	rm -r -f $(CLEAN_EXTRACTED)
 	rm -f *-stamp

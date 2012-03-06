@@ -280,7 +280,7 @@ void Slave::initialize()
 
   install<ShutdownMessage>(
       &Slave::shutdown);
-  
+
   // Install the ping message handler.
   install("PING", &Slave::ping);
 
@@ -777,12 +777,11 @@ void Slave::registerExecutor(const FrameworkID& frameworkId,
 
     // Tell executor it's registered and give it any queued tasks.
     ExecutorRegisteredMessage message;
-    ExecutorArgs* args = message.mutable_args();
-    args->mutable_framework_id()->MergeFrom(framework->id);
-    args->mutable_executor_id()->MergeFrom(executor->id);
-    args->mutable_slave_id()->MergeFrom(id);
-    args->set_hostname(info.hostname());
-    args->set_data(executor->info.data());
+    message.mutable_executor_info()->MergeFrom(executor->info);
+    message.mutable_framework_id()->MergeFrom(framework->id);
+    message.mutable_framework_info()->MergeFrom(framework->info);
+    message.mutable_slave_id()->MergeFrom(id);
+    message.mutable_slave_info()->MergeFrom(info);
     send(executor->pid, message);
 
     LOG(INFO) << "Flushing queued tasks for framework " << framework->id;
@@ -1032,6 +1031,11 @@ void Slave::statusUpdateTimeout(
       message.mutable_update()->MergeFrom(update);
       message.set_pid(self());
       send(master, message);
+
+      // Send us a message to try and resend after some delay.
+      delay(STATUS_UPDATE_RETRY_INTERVAL_SECONDS,
+            self(), &Slave::statusUpdateTimeout,
+            framework->id, uuid);
     }
   }
 }

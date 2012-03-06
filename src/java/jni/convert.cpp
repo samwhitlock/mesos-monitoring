@@ -33,7 +33,7 @@ using std::string;
 // ClassLoader. Unfortunately, JNI's FindClass uses the system
 // ClassLoader when it is called from a C++ thread, but in Scala (and
 // probably other Java environments too), this ClassLoader is not
-// enough to locate mesos.jar. Instead, we try to capture
+// enough to locate the Mesos JAR. Instead, we try to capture
 // Thread.currentThread()'s context ClassLoader when the Mesos library
 // is initialized, in case it has more paths that we can search. We
 // store this in mesosClassLoader and access it through
@@ -106,7 +106,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void* reserved)
 {
   // Grab the context ClassLoader of the current thread, if any.
   JNIEnv* env;
-  if (jvm->GetEnv((void**) &env, JNI_VERSION_1_2)) {
+  if (jvm->GetEnv((void**) &env, JNI_VERSION_1_2) != JNI_OK) {
     return JNI_ERR; // JNI version not supported.
   }
 
@@ -134,6 +134,15 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void* reserved)
     mesosClassLoader = env->NewWeakGlobalRef(classLoader);
   }
 
+  // Set the 'loaded' property so we don't try and load it again. This
+  // is necessary because a native library can be loaded either with
+  // 'System.load' or 'System.loadLibrary' and while redundant calls
+  // to 'System.loadLibrary' will be ignored one call of each could
+  // cause an error.
+  jclass clazz = env->FindClass("org/apache/mesos/MesosNativeLibrary");
+  jfieldID loaded = env->GetStaticFieldID(clazz, "loaded", "Z");
+  env->SetStaticBooleanField(clazz, loaded, (jboolean) true);
+
   return JNI_VERSION_1_2;
 }
 
@@ -142,9 +151,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* jvm, void* reserved)
 JNIEXPORT void JNICALL JNI_OnUnLoad(JavaVM* jvm, void* reserved)
 {
   JNIEnv* env;
-  if (jvm->GetEnv((void**) &env, JNI_VERSION_1_2)) {
+  if (jvm->GetEnv((void**) &env, JNI_VERSION_1_2) != JNI_OK) {
     return;
   }
+
+  // TODO(benh): Must we set 'MesosNativeLibrary.loaded' to false?
 
   if (mesosClassLoader != NULL) {
     env->DeleteWeakGlobalRef(mesosClassLoader);
@@ -180,6 +191,29 @@ jobject convert(JNIEnv* env, const FrameworkID& frameworkId)
   jobject jframeworkId = env->CallStaticObjectMethod(clazz, parseFrom, jdata);
 
   return jframeworkId;
+}
+
+
+template <>
+jobject convert(JNIEnv* env, const FrameworkInfo& frameworkInfo)
+{
+  string data;
+  frameworkInfo.SerializeToString(&data);
+
+  // byte[] data = ..;
+  jbyteArray jdata = env->NewByteArray(data.size());
+  env->SetByteArrayRegion(jdata, 0, data.size(), (jbyte*) data.data());
+
+  // FrameworkInfo frameworkInfo = FrameworkInfo.parseFrom(data);
+  jclass clazz = FindMesosClass(env, "org/apache/mesos/Protos$FrameworkInfo");
+
+  jmethodID parseFrom =
+    env->GetStaticMethodID(clazz, "parseFrom",
+                           "([B)Lorg/apache/mesos/Protos$FrameworkInfo;");
+
+  jobject jframeworkInfo = env->CallStaticObjectMethod(clazz, parseFrom, jdata);
+
+  return jframeworkInfo;
 }
 
 
@@ -249,6 +283,29 @@ jobject convert(JNIEnv* env, const SlaveID& slaveId)
   jobject jslaveId = env->CallStaticObjectMethod(clazz, parseFrom, jdata);
 
   return jslaveId;
+}
+
+
+template <>
+jobject convert(JNIEnv* env, const SlaveInfo& slaveInfo)
+{
+  string data;
+  slaveInfo.SerializeToString(&data);
+
+  // byte[] data = ..;
+  jbyteArray jdata = env->NewByteArray(data.size());
+  env->SetByteArrayRegion(jdata, 0, data.size(), (jbyte*) data.data());
+
+  // SlaveInfo slaveInfo = SlaveInfo.parseFrom(data);
+  jclass clazz = FindMesosClass(env, "org/apache/mesos/Protos$SlaveInfo");
+
+  jmethodID parseFrom =
+    env->GetStaticMethodID(clazz, "parseFrom",
+                           "([B)Lorg/apache/mesos/Protos$SlaveInfo;");
+
+  jobject jslaveInfo = env->CallStaticObjectMethod(clazz, parseFrom, jdata);
+
+  return jslaveInfo;
 }
 
 
@@ -384,28 +441,6 @@ jobject convert(JNIEnv* env, const ExecutorInfo& executor)
   return jexecutor;
 }
 
-
-template <>
-jobject convert(JNIEnv* env, const ExecutorArgs& args)
-{
-  string data;
-  args.SerializeToString(&data);
-
-  // byte[] data = ..;
-  jbyteArray jdata = env->NewByteArray(data.size());
-  env->SetByteArrayRegion(jdata, 0, data.size(), (jbyte*) data.data());
-
-  // ExecutorArgs args = ExecutorArgs.parseFrom(data);
-  jclass clazz = FindMesosClass(env, "org/apache/mesos/Protos$ExecutorArgs");
-
-  jmethodID parseFrom =
-    env->GetStaticMethodID(clazz, "parseFrom",
-                           "([B)Lorg/apache/mesos/Protos$ExecutorArgs;");
-
-  jobject jargs = env->CallStaticObjectMethod(clazz, parseFrom, jdata);
-
-  return jargs;
-}
 
 template <>
 jobject convert(JNIEnv* env, const Status& status)

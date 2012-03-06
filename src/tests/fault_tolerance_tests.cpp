@@ -372,7 +372,7 @@ TEST(FaultToleranceTest, DISABLED_TaskLost)
   PID<Master> master = process::spawn(&m);
 
   MockExecutor exec;
-  EXPECT_CALL(exec, init(_, _))
+  EXPECT_CALL(exec, registered(_, _, _, _, _, _))
     .Times(0);
 
   EXPECT_CALL(exec, launchTask(_, _))
@@ -476,14 +476,15 @@ TEST(FaultToleranceTest, SchedulerFailoverStatusUpdate)
 
   MockExecutor exec;
 
-  EXPECT_CALL(exec, init(_, _))
+  EXPECT_CALL(exec, registered(_, _, _, _, _, _))
     .Times(1);
 
   EXPECT_CALL(exec, launchTask(_, _))
     .WillOnce(SendStatusUpdate(TASK_RUNNING));
 
+  trigger shutdownCall;
   EXPECT_CALL(exec, shutdown(_))
-    .Times(AtMost(1));
+    .WillOnce(Trigger(&shutdownCall));
 
   map<ExecutorID, Executor*> execs;
   execs[DEFAULT_EXECUTOR_ID] = &exec;
@@ -583,6 +584,9 @@ TEST(FaultToleranceTest, SchedulerFailoverStatusUpdate)
   process::terminate(master);
   process::wait(master);
 
+  // Ensures MockExecutor no longer being used by MesosExecutorDriver.
+  WAIT_UNTIL(shutdownCall);
+
   process::filter(NULL);
 
   Clock::resume();
@@ -601,7 +605,7 @@ TEST(FaultToleranceTest, SchedulerFailoverFrameworkMessage)
 
   ExecutorDriver* execDriver;
 
-  EXPECT_CALL(exec, init(_, _))
+  EXPECT_CALL(exec, registered(_, _, _, _, _, _))
     .WillOnce(SaveArg<0>(&execDriver));
 
   EXPECT_CALL(exec, launchTask(_, _))

@@ -201,14 +201,6 @@ ExecutorLauncher* ProcessBasedIsolationModule::createExecutorLauncher(
     const ExecutorInfo& executorInfo,
     const string& directory)
 {
-  // Create a map of parameters for the executor launcher.
-  map<string, string> params;
-
-  for (int i = 0; i < executorInfo.params().param_size(); i++) {
-    params[executorInfo.params().param(i).key()] =
-      executorInfo.params().param(i).value();
-  }
-
   return new ExecutorLauncher(frameworkId,
                               executorInfo.executor_id(),
                               executorInfo.uri(),
@@ -221,7 +213,7 @@ ExecutorLauncher* ProcessBasedIsolationModule::createExecutorLauncher(
                               !local,
                               conf.get("switch_user", true),
                               "",
-                              params);
+                              executorInfo.environment());
 }
 
 
