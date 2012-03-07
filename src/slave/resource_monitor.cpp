@@ -64,7 +64,7 @@ Future<UsageMessage> ResourceMonitor::collectUsage(
   if (memUsage.isSome()) {
     mesos::Resource memory;
     memory.set_type(Value::SCALAR);
-    memory.set_name("mem_usage");
+    memory.set_name("mem");
     memory.mutable_scalar()->set_value(memUsage.get());
     resources += memory;
   } else {
@@ -78,7 +78,7 @@ Future<UsageMessage> ResourceMonitor::collectUsage(
     Rate rate = cpuUsage.get();
     mesos::Resource cpu;
     cpu.set_type(Value::SCALAR);
-    cpu.set_name("cpu_usage");
+    cpu.set_name("cpus");
     cpu.mutable_scalar()->set_value(rate.difference);
     duration = rate.duration;
     resources += cpu;
